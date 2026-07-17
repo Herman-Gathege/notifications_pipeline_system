@@ -4,7 +4,7 @@ set -e
 
 echo ""
 echo "===================================="
-echo "Starting Notification Platform API"
+echo "Starting Notification Worker"
 echo "===================================="
 
 echo "Waiting for PostgreSQL..."
@@ -21,18 +21,16 @@ echo "PostgreSQL Ready."
 
 echo "Waiting for Redis..."
 
-until redis-cli \
-    -h "$REDIS_HOST" \
-    ping
+until redis-cli -h "$REDIS_HOST" ping
 do
     sleep 2
 done
 
 echo "Redis Ready."
 
-echo "Starting FastAPI..."
+echo "Starting Celery Worker..."
 
-exec uvicorn app.main:app \
-    --host 0.0.0.0 \
-    --port 8000 \
-    --reload
+exec celery \
+    -A app.workers.worker.celery_app \
+    worker \
+    --loglevel=info

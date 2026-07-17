@@ -1,8 +1,10 @@
 services:
 
+  # ==================================================
+  # PostgreSQL Database
+  # ==================================================
   notification-postgres:
     container_name: notification-postgres
-
     image: postgres:17-alpine
 
     restart: unless-stopped
@@ -10,65 +12,70 @@ services:
     env_file:
       - .env
 
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
     ports:
       - "${POSTGRES_PORT}:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
 
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
-        ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
     networks:
       - notification-network
 
-
+  # ==================================================
+  # Redis
+  # ==================================================
   notification-redis:
     container_name: notification-redis
-
     image: redis:7-alpine
 
     restart: unless-stopped
 
+    env_file:
+      - .env
+
     ports:
       - "${REDIS_PORT}:6379"
 
-    volumes:
-      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
-
     command:
-      redis-server /usr/local/etc/redis/redis.conf
+      - redis-server
+      - /usr/local/etc/redis/redis.conf
+
+    volumes:
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
 
     healthcheck:
-      test:
-        [
-          "CMD",
-          "redis-cli",
-          "ping"
-        ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 5s
 
     networks:
-      - notification-network    
+      - notification-network
 
+  # ==================================================
+  # FastAPI Backend
+  # ==================================================
   notification-api:
-
-    working_dir: /app
-
     container_name: notification-api
 
     build:
       context: ./backend
+
+    working_dir: /app
 
     restart: unless-stopped
 
@@ -76,7 +83,6 @@ services:
       - .env
 
     depends_on:
-
       notification-postgres:
         condition: service_healthy
 
@@ -89,56 +95,66 @@ services:
     volumes:
       - ./backend:/app
 
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
     networks:
       - notification-network
 
+  # ==================================================
+  # Celery Worker
+  # ==================================================
   notification-worker:
-
-    working_dir: /app
-
     container_name: notification-worker
 
     build:
       context: ./backend
 
-    restart: unless-stopped
+    working_dir: /app
+
+    entrypoint:
+      - ./worker-entrypoint.sh
 
     env_file:
       - .env
 
     depends_on:
+      notification-postgres:
+        condition: service_healthy
 
-      depends_on:
-        notification-postgres:
-          condition: service_healthy
+      notification-redis:
+        condition: service_healthy
 
-        notification-redis:
-          condition: service_healthy
+      notification-api:
+        condition: service_started
 
-        notification-api:
-          condition: service_started
-
-    command:
-
-      celery -A app.workers.worker worker --loglevel=info
+    restart: unless-stopped
 
     volumes:
       - ./backend:/app
 
     networks:
-      - notification-network        
+      - notification-network
 
-
+  # ==================================================
+  # React Frontend
+  # ==================================================
   notification-frontend:
-
-    working_dir: /app
-
     container_name: notification-frontend
 
     build:
       context: ./frontend
 
+    working_dir: /app
+
     restart: unless-stopped
+
+    env_file:
+      - .env
 
     ports:
       - "${FRONTEND_PORT}:5173"
@@ -146,9 +162,19 @@ services:
     volumes:
       - ./frontend:/app
 
-    networks:
-      - notification-network    
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
+    networks:
+      - notification-network
+
+  # ==================================================
+  # Nginx Reverse Proxy
+  # ==================================================
   notification-nginx:
     container_name: notification-nginx
 
@@ -162,34 +188,25 @@ services:
         condition: service_healthy
 
       notification-frontend:
-        condition: service_started
+        condition: service_healthy
 
     ports:
-
       - "${NGINX_PORT}:80"
 
     networks:
-      - notification-network    
+      - notification-network
 
-  volumes:
-  
-    postgres_data:
-    
-      name: notification-postgres-data    
+# ==================================================
+# Persistent Volumes
+# ==================================================
+volumes:
+  postgres_data:
+    name: notification-postgres-data
 
-  networks:
-
-    notification-network:
-
-      name: notification-network
-
-      driver: bridge
-
-  env_file:
-    - .env      
-
-  healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-  interval: 30s
-  timeout: 10s
-  retries: 3
+# ==================================================
+# Internal Network
+# ==================================================
+networks:
+  notification-network:
+    name: notification-network
+    driver: bridge
