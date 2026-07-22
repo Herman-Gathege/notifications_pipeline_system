@@ -33,12 +33,12 @@ class ApplicationRepository:
             .first()
         )
 
-    def get_by_api_key(self, api_key: str) -> Application | None:
-        return (
-            self.db.query(Application)
-            .filter(Application.api_key == api_key)
-            .first()
-        )
+    # def get_by_api_key(self, api_key: str) -> Application | None:
+    #     return (
+    #         self.db.query(Application)
+    #         .filter(Application.api_key == api_key)
+    #         .first()
+    #     )
 
     def update(self, application: Application) -> Application:
         self.db.commit()

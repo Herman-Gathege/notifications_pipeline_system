@@ -17,7 +17,7 @@ class ApplicationUpdate(BaseModel):
 class ApplicationResponse(BaseModel):
     id: UUID
     name: str
-    api_key: str
+    # api_key: str
     secret: str
     status: str
     created_at: datetime

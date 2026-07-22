@@ -20,9 +20,9 @@ class ApplicationService:
 
         application = Application(
             name=name,
-            api_key=token_hex(16),
+            # api_key=token_hex(16),
             secret=token_hex(32),
-            status="active",
+            status=True,
         )
 
         return self.repository.create(application)
