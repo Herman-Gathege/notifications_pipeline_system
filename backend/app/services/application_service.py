@@ -1,16 +1,18 @@
 # backend/app/services/application_service.py
 
 from secrets import token_hex
-from uuid import UUID
+# from uuid import UUID
 
 from app.models.application import Application
 from app.repositories.application_repository import ApplicationRepository
 from app.schemas.application import ApplicationUpdate
+from app.services.apikey_service import APIKeyService
 
 
 class ApplicationService:
-    def __init__(self, repository: ApplicationRepository):
+    def __init__(self, repository: ApplicationRepository, api_key_service: APIKeyService):
         self.repository = repository
+        self.api_key_service = api_key_service
 
     def create_application(self, name: str) -> Application:
         existing = self.repository.get_by_name(name)
@@ -20,22 +22,25 @@ class ApplicationService:
 
         application = Application(
             name=name,
-            # api_key=token_hex(16),
             secret=token_hex(32),
             status=True,
         )
 
-        return self.repository.create(application)
+        application = self.repository.create(application)
+
+        api_key = self.api_key_service.create_key(application.id)
+
+        return application, api_key
 
     def get_all(self):
         return self.repository.get_all()
 
-    def get_by_id(self, application_id: UUID):
+    def get_by_id(self, application_id: str):
         return self.repository.get_by_id(application_id)
 
     def update(
         self,
-        application_id: UUID,
+        application_id: str,
         payload: ApplicationUpdate,
     ):
         application = self.repository.get_by_id(application_id)
@@ -51,7 +56,7 @@ class ApplicationService:
 
         return self.repository.update(application)
 
-    def delete(self, application_id: UUID):
+    def delete(self, application_id: str):
         application = self.repository.get_by_id(application_id)
 
         if application is None:

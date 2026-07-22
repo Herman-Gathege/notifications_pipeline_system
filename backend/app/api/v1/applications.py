@@ -1,5 +1,5 @@
 #backend/app/api/v1/applications.py
-from uuid import UUID
+# from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -12,13 +12,39 @@ from app.schemas.application import (
     ApplicationUpdate,
 )
 from app.services.application_service import ApplicationService
+from app.repositories.apikey_repository import APIKeyRepository
+from app.services.apikey_service import APIKeyService
 
 router = APIRouter(prefix="/applications", tags=["Applications"])
 
 
 def get_service(db: Session):
-    repository = ApplicationRepository(db)
-    return ApplicationService(repository)
+    application_repository = ApplicationRepository(db)
+
+    api_key_repository = APIKeyRepository(db)
+    api_key_service = APIKeyService(api_key_repository)
+
+    return ApplicationService(
+        application_repository,
+        api_key_service,
+    )
+
+
+def serialize_application(application):
+    api_key = None
+
+    if application.api_keys:
+        api_key = application.api_keys[0].token
+
+    return {
+        "id": application.id,
+        "name": application.name,
+        "api_key": api_key,
+        "secret": application.secret,
+        "status": "active" if application.status else "inactive",
+        "created_at": application.created_at,
+        "updated_at": application.updated_at,
+    }
 
 
 @router.post("", response_model=ApplicationResponse, status_code=201)
@@ -29,7 +55,11 @@ def create_application(
     service = get_service(db)
 
     try:
-        return service.create_application(payload.name)
+        application, api_key = service.create_application(payload.name)
+
+        response = serialize_application(application)
+        response["api_key"] = api_key.token
+        return response
 
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
@@ -39,12 +69,17 @@ def create_application(
 def list_applications(
     db: Session = Depends(get_db),
 ):
-    return get_service(db).get_all()
+    applications = get_service(db).get_all()
+
+    return [
+        serialize_application(application)
+        for application in applications
+    ]
 
 
 @router.get("/{application_id}", response_model=ApplicationResponse)
 def get_application(
-    application_id: UUID,
+    application_id: str,
     db: Session = Depends(get_db),
 ):
     application = get_service(db).get_by_id(application_id)
@@ -52,11 +87,11 @@ def get_application(
     if application is None:
         raise HTTPException(404, "Application not found.")
 
-    return application
+    return serialize_application(application)
 
 @router.patch("/{application_id}", response_model=ApplicationResponse)
 def update_application(
-    application_id: UUID,
+    application_id: str,
     payload: ApplicationUpdate,
     db: Session = Depends(get_db),
 ):
@@ -73,12 +108,12 @@ def update_application(
             detail="Application not found.",
         )
 
-    return application
+    return serialize_application(application)
 
 
 @router.delete("/{application_id}", status_code=204)
 def delete_application(
-    application_id: UUID,
+    application_id: str,
     db: Session = Depends(get_db),
 ):
     deleted = get_service(db).delete(application_id)

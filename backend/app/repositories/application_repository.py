@@ -1,5 +1,5 @@
 #backend/app/repositories/application_repository.py
-from uuid import UUID
+# from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -19,7 +19,7 @@ class ApplicationRepository:
     def get_all(self) -> list[Application]:
         return self.db.query(Application).all()
 
-    def get_by_id(self, application_id: UUID) -> Application | None:
+    def get_by_id(self, application_id: str) -> Application | None:
         return (
             self.db.query(Application)
             .filter(Application.id == application_id)
