@@ -203,6 +203,11 @@ Rebuild containers.
 docker compose up --build --force-recreate
 ```
 
+start docker.
+
+```bash
+sudo systemctl start docker
+sudo lsof -i :5173
 ---
 
 # Docker
