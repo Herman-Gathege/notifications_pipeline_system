@@ -1,11 +1,18 @@
 from app.models.event import Event
 from app.repositories.event_repository import EventRepository
 from app.schemas.event import EventCreate
+from app.repositories.notification_repository import NotificationRepository
+from app.models.notification import Notification
 
 
 class EventService:
-    def __init__(self, repository: EventRepository):
-        self.repository = repository
+    def __init__(
+        self,
+        event_repository: EventRepository,
+        notification_repository: NotificationRepository,
+    ):
+        self.event_repository = event_repository
+        self.notification_repository = notification_repository
 
     def create_event(self, data: EventCreate) -> Event:
         event = Event(
@@ -14,15 +21,23 @@ class EventService:
             payload=data.payload,
         )
 
-        return self.repository.create(event)
+        event = self.event_repository.create(event)
+
+        notification = Notification(
+            event_id=event.id,
+        )
+
+        self.notification_repository.create(notification)
+
+        return event
 
     def get_event(self, event_id: str) -> Event | None:
-        return self.repository.get_by_id(event_id)
+        return self.event_repository.get_by_id(event_id)
 
     def list_events(self) -> list[Event]:
-        return self.repository.list()
+        return self.event_repository.list()
 
     def mark_processed(self, event: Event) -> Event:
         event.is_processed = True
         event.status = "processed"
-        return self.repository.update(event)
+        return self.event_repository.update(event)

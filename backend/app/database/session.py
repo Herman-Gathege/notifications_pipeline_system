@@ -1,6 +1,7 @@
-#backend/app/database/session.py
+from collections.abc import Generator
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.config.settings import settings
 
@@ -14,3 +15,19 @@ SessionLocal = sessionmaker(
     autoflush=False,
     bind=engine,
 )
+
+
+def get_db() -> Generator[Session, None, None]:
+    """
+    FastAPI database dependency.
+
+    Creates a database session for each request
+    and guarantees it is closed afterwards.
+    """
+
+    db = SessionLocal()
+
+    try:
+        yield db
+    finally:
+        db.close()
