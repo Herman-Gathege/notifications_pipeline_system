@@ -1,4 +1,3 @@
-#backend/app/schemas/__init__.py
 from .apikey import APIKeyResponse
 from .application import (
     ApplicationCreate,
@@ -9,17 +8,35 @@ from .auth import (
     TokenRequest,
     TokenResponse,
     ValidateTokenRequest,
-    ValidateTokenResponse
+    ValidateTokenResponse,
+)
+from .event import (
+    EventCreate,
+    EventResponse,
+)
+from .notification import (
+    NotificationResponse,
 )
 
 __all__ = [
+    # Applications
     "ApplicationCreate",
     "ApplicationUpdate",
     "ApplicationResponse",
+
+    # API Keys
     "APIKeyResponse",
+
+    # Authentication
     "TokenRequest",
     "TokenResponse",
-    "TokenValidationResponse",
     "ValidateTokenRequest",
-    "ValidateTokenResponse"
+    "ValidateTokenResponse",
+
+    # Events
+    "EventCreate",
+    "EventResponse",
+
+    # Notifications
+    "NotificationResponse",
 ]

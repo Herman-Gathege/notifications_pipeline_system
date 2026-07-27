@@ -53,3 +53,9 @@ class Application(Base):
         back_populates="application",
         cascade="all, delete-orphan",
     )
+
+    events = relationship(
+        "Event",
+        back_populates="application",
+        cascade="all, delete-orphan",
+    )
