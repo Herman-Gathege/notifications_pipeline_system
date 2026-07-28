@@ -7,6 +7,9 @@ from app.schemas.provider import (
     ProviderUpdate,
 )
 
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+
 
 class ProviderService:
     """
@@ -42,7 +45,15 @@ class ProviderService:
             is_active=data.is_active,
         )
 
-        return self.repository.create(provider)
+        # return self.repository.create(provider)
+        try:
+            return self.repository.create(provider)
+
+        except IntegrityError:
+            raise HTTPException(
+                status_code=409,
+                detail="Provider with this name already exists.",
+            )
 
     def list(self) -> list[Provider]:
         return self.repository.list()

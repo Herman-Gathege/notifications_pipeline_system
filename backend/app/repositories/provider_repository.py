@@ -4,15 +4,37 @@ from sqlalchemy.orm import Session
 
 from app.models.provider import Provider
 
+from sqlalchemy.exc import IntegrityError
+
+
 
 class ProviderRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, provider: Provider) -> Provider:
+    # def create(self, provider: Provider) -> Provider:
+    #     self.db.add(provider)
+    #     self.db.commit()
+    #     self.db.refresh(provider)
+    #     return provider
+
+
+    def create(
+        self,
+        provider: Provider,
+    ) -> Provider:
+
         self.db.add(provider)
-        self.db.commit()
+
+        try:
+            self.db.commit()
+
+        except IntegrityError:
+            self.db.rollback()
+            raise
+
         self.db.refresh(provider)
+
         return provider
 
     def get_by_id(self, provider_id):

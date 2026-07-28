@@ -7,7 +7,7 @@ from app.repositories.notification_repository import NotificationRepository
 
 from app.schemas.event import EventCreate
 
-from app.workers.notification_worker import process_notification
+# from app.workers.notification_worker import process_notification
 
 class EventService:
     def __init__(
@@ -37,7 +37,10 @@ class EventService:
 
 
         # enqueue background job
-        process_notification.delay(str(notification.id))
+        # Lazy import to avoid circular imports
+        from app.workers.notification_worker import process_notification
+
+        process_notification.delay(notification.id)
 
         return event
 
