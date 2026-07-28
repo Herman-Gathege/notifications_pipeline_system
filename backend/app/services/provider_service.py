@@ -1,4 +1,4 @@
-# backend/app/services/provider_service.py 
+# backend/app/services/provider_service.py
 
 from app.models.provider import Provider
 from app.repositories.provider_repository import ProviderRepository
@@ -38,7 +38,6 @@ class ProviderService:
         provider = Provider(
             name=data.name,
             channel=data.channel,
-            provider_type=data.provider_type,
             priority=data.priority,
             is_active=data.is_active,
         )
