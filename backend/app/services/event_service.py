@@ -1,3 +1,4 @@
+# backend/app/services/event_service.py
 from app.models.event import Event
 from app.models.notification import Notification
 

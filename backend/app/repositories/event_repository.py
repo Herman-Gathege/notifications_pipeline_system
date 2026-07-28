@@ -1,3 +1,4 @@
+# backend/app/repositories/event_repository.py
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 

@@ -1,3 +1,4 @@
+# backend/app/api/v1/events.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 

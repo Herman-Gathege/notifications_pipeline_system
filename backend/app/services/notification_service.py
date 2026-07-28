@@ -1,3 +1,4 @@
+# backend/app/services/notification_service.py
 from app.models.notification import Notification
 from app.repositories.notification_repository import NotificationRepository
 
