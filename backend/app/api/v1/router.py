@@ -5,6 +5,8 @@ from .applications import router as application_router
 from .auth import router as auth_router
 from .events import router as event_router
 from .notifications import router as notification_router
+from .providers import router as provider_router
+from .templates import router as template_router
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -12,3 +14,5 @@ api_router.include_router(auth_router)
 api_router.include_router(application_router)
 api_router.include_router(event_router)
 api_router.include_router(notification_router)
+api_router.include_router(provider_router)
+api_router.include_router(template_router)
