@@ -207,6 +207,11 @@ start docker.
 
 ```bash
 sudo systemctl start docker
+docker exec -it notification-api bash
+```
+
+Check if port is open.
+```bash
 sudo lsof -i :5173
 ---
 

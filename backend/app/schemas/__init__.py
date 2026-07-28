@@ -18,6 +18,18 @@ from .notification import (
     NotificationResponse,
 )
 
+from .provider import (
+    ProviderCreate,
+    ProviderResponse,
+    ProviderUpdate,
+)
+
+from .template import (
+    TemplateCreate,
+    TemplateResponse,
+    TemplateUpdate,
+)
+
 __all__ = [
     # Applications
     "ApplicationCreate",
@@ -39,4 +51,14 @@ __all__ = [
 
     # Notifications
     "NotificationResponse",
+
+    # Providers
+    "ProviderCreate",
+    "ProviderResponse",
+    "ProviderUpdate",
+
+    # Templates
+    "TemplateCreate",
+    "TemplateResponse",
+    "TemplateUpdate",
 ]

@@ -3,10 +3,14 @@ from app.models.application import Application
 from app.models.api_key import APIKey
 from app.models.event import Event
 from app.models.notification import Notification
+from app.models.template import Template
+from app.models.provider import Provider
 
 __all__ = [
     "Application",
     "APIKey",
     "Event",
     "Notification",
+    "Template",
+    "Provider",
 ]
