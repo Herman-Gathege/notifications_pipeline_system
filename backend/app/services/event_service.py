@@ -35,7 +35,7 @@ class EventService:
         event = Event(
             application_id=application_id,
             event_type=data.event_type,
-            payload=data.payload,
+            payload=data.payload.model_dump(),
         )
 
         event = self.event_repository.create(event)

@@ -1,15 +1,22 @@
 # backend/app/schemas/event.py
+
 from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
+
+
+class EventPayload(BaseModel):
+    customer: str
+    email: EmailStr
+    phone: str
+    amount: str
 
 
 class EventCreate(BaseModel):
-    # application_id: str
     event_type: str
-    payload: dict
+    payload: EventPayload
 
 
 class EventResponse(BaseModel):
