@@ -1,5 +1,8 @@
 # backend/app/workers/notification_worker.py
 
+
+# from django.contrib.gis import db
+
 from app.database.session import SessionLocal
 from app.models.event import Event
 from app.models.notification import Notification
@@ -12,6 +15,11 @@ from app.services.routing_service import RoutingService
 from app.services.template_service import TemplateService
 
 from app.workers.worker import celery_app
+
+import time
+
+from app.repositories.notification_repository import NotificationRepository
+from app.services.notification_service import NotificationService
 
 
 @celery_app.task(name="app.workers.notification_worker.process_notification")
@@ -34,6 +42,12 @@ def process_notification(notification_id: str):
     """
 
     db = SessionLocal()
+
+    start = time.perf_counter()
+
+    notification_repository = NotificationRepository(db)
+    notification_service = NotificationService(notification_repository)
+
 
     try:
 
@@ -117,6 +131,15 @@ def process_notification(notification_id: str):
 
         payload_data = event.payload or {}
 
+        if notification.channel == "email":
+            recipient = payload_data.get("email", "")
+        elif notification.channel in ("sms", "whatsapp"):
+            recipient = payload_data.get("phone", "")
+        else:
+            recipient = ""
+
+        notification.recipient = recipient
+
         variables = {
             "customer": payload_data.get(
                 "customer",
@@ -144,7 +167,7 @@ def process_notification(notification_id: str):
         delivery_payload = {
             "provider": provider.name,
             "channel": notification.channel,
-            "recipient": notification.recipient,
+            "recipient": recipient,
             "subject": rendered["subject"],
             "body": rendered["body"],
         }
@@ -159,7 +182,16 @@ def process_notification(notification_id: str):
         # Simulate Successful Delivery
         # -------------------------------------------------
 
-        notification.status = "processed"
+        elapsed = int((time.perf_counter() - start) * 1000)
+
+        notification_service.update_notification(
+            notification,
+            recipient=recipient,
+            provider=provider.name,
+            status="delivered",
+            processing_time_ms=elapsed,
+            failure_reason=None,
+        )
 
         event.status = "processed"
         event.is_processed = True
@@ -174,7 +206,20 @@ def process_notification(notification_id: str):
             "status": notification.status,
         }
 
-    except Exception:
+    except Exception as exc:
+
+        elapsed = int((time.perf_counter() - start) * 1000)
+
+        if "notification" in locals():
+
+            notification_service.update_notification(
+                notification,
+                recipient="",
+                provider="unknown",
+                status="failed",
+                processing_time_ms=elapsed,
+                failure_reason=str(exc),
+            )
 
         db.rollback()
         raise

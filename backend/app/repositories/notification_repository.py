@@ -63,3 +63,9 @@ class NotificationRepository:
             )
             .delete(synchronize_session=False)
         )
+
+    def update(self, notification: Notification):
+        self.db.add(notification)
+        self.db.commit()
+        self.db.refresh(notification)
+        return notification
