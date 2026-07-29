@@ -3,7 +3,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.notification import Notification
+from datetime import datetime, timedelta, UTC
 
+from app.models.notification import Notification
 
 class NotificationRepository:
     def __init__(self, db: Session):
@@ -29,3 +31,35 @@ class NotificationRepository:
         self.db.commit()
         self.db.refresh(notification)
         return notification
+    
+
+    def get_processed_older_than_days(
+        self,
+        days: int = 30,
+    ):
+        cutoff = datetime.now(UTC) - timedelta(days=days)
+
+        return (
+            self.db.query(Notification)
+            .filter(
+                Notification.status == "processed",
+                Notification.created_at < cutoff,
+            )
+            .all()
+        )
+
+    
+    def delete_processed_older_than_days(
+        self,
+        days: int = 30,
+    ):
+        cutoff = datetime.now(UTC) - timedelta(days=days)
+
+        return (
+            self.db.query(Notification)
+            .filter(
+                Notification.status == "processed",
+                Notification.created_at < cutoff,
+            )
+            .delete(synchronize_session=False)
+        )
