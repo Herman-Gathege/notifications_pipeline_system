@@ -20,7 +20,7 @@ class ReportRepository:
     def successful_notifications(self):
         return (
             self.db.query(Notification)
-            .filter(Notification.status == "sent")
+            .filter(Notification.status == "delivered")
             .count()
         )
 
@@ -44,15 +44,13 @@ class ReportRepository:
                 Notification.provider,
                 func.count(Notification.id).label("total"),
             )
+            .filter(Notification.status == "delivered")
             .group_by(Notification.provider)
             .order_by(func.count(Notification.id).desc())
             .first()
         )
 
-        if result:
-            return result.provider
-
-        return None
+        return result.provider if result else None
 
     def provider_statistics(self):
         rows = (
