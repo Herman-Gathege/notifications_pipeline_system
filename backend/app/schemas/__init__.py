@@ -30,6 +30,8 @@ from .template import (
     TemplateUpdate,
 )
 
+from .report import ReportResponse
+
 __all__ = [
     # Applications
     "ApplicationCreate",
@@ -61,4 +63,7 @@ __all__ = [
     "TemplateCreate",
     "TemplateResponse",
     "TemplateUpdate",
+
+    # Reports
+    "ReportResponse",
 ]

@@ -45,7 +45,12 @@ from app.services.template_service import (
 from app.repositories.apikey_repository import APIKeyRepository
 
 from app.services.apikey_service import APIKeyService
+
 from app.services.authentication_service import AuthenticationService
+
+from app.repositories.report_repository import ReportRepository
+
+from app.services.report_service import ReportService
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -132,4 +137,12 @@ def get_authentication_service(
 
     return AuthenticationService(
         api_key_service,
+    )
+
+
+def get_report_service(
+    db: Session = Depends(get_db),
+):
+    return ReportService(
+        ReportRepository(db),
     )
