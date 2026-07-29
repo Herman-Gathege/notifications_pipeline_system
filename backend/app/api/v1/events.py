@@ -1,6 +1,7 @@
 # backend/app/api/v1/events.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from app.api.security import get_current_application
 
 from app.database.session import get_db
 from app.repositories.event_repository import EventRepository
@@ -24,6 +25,18 @@ def get_event_service(db: Session = Depends(get_db)) -> EventService:
     )
 
 
+# @router.post(
+#     "",
+#     response_model=EventResponse,
+#     status_code=status.HTTP_201_CREATED,
+# )
+# def create_event(
+#     payload: EventCreate,
+#     service: EventService = Depends(get_event_service),
+# ):
+#     return service.create_event(payload)
+
+
 @router.post(
     "",
     response_model=EventResponse,
@@ -31,9 +44,13 @@ def get_event_service(db: Session = Depends(get_db)) -> EventService:
 )
 def create_event(
     payload: EventCreate,
+    current_app=Depends(get_current_application),
     service: EventService = Depends(get_event_service),
 ):
-    return service.create_event(payload)
+    return service.create_event(
+        payload,
+        current_app["sub"],
+    )
 
 
 @router.get(

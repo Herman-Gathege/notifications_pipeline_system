@@ -3,13 +3,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
-from app.repositories.application_repository import ApplicationRepository
+# from app.repositories.application_repository import ApplicationRepository
 from app.schemas.auth import (
     TokenRequest,
     TokenResponse,
     ValidateTokenRequest,
     ValidateTokenResponse,
 )
+from app.repositories.apikey_repository import APIKeyRepository
 from app.services.apikey_service import APIKeyService
 from app.services.authentication_service import AuthenticationService
 
@@ -20,8 +21,9 @@ router = APIRouter(
 
 
 def get_auth_service(db: Session):
-    repository = ApplicationRepository(db)
+    repository = APIKeyRepository(db)
     apikey_service = APIKeyService(repository)
+
     return AuthenticationService(apikey_service)
 
 

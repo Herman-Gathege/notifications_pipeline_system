@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class EventCreate(BaseModel):
-    application_id: str
+    # application_id: str
     event_type: str
     payload: dict
 

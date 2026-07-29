@@ -18,10 +18,22 @@ class EventService:
         self.event_repository = event_repository
         self.notification_repository = notification_repository
 
-    def create_event(self, data: EventCreate) -> Event:
+    # def create_event(self, data: EventCreate) -> Event:
+
+    #     event = Event(
+    #         application_id=data.application_id,
+    #         event_type=data.event_type,
+    #         payload=data.payload,
+    #     )
+
+    def create_event(
+        self,
+        data: EventCreate,
+        application_id: str,
+    ) -> Event:
 
         event = Event(
-            application_id=data.application_id,
+            application_id=application_id,
             event_type=data.event_type,
             payload=data.payload,
         )
