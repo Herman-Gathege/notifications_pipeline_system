@@ -116,26 +116,28 @@ class ProviderService:
                 detail="Provider is disabled.",
             )
 
-        # resolver = ProviderResolver(self.repository)
-
-        # _, client = resolver.resolve(provider.channel)
-
-        # return client.send(
-        #     recipient=recipient,
-        #     subject="Notification Platform Test",
-        #     body=(
-        #         "Congratulations!\n\n"
-        #         "Your notification provider is configured correctly."
-        #     ),
-        # )
+        
 
         if provider.transport_type == "smtp":
 
             client = SMTPProvider(provider)
 
-        else:
+        elif (
+            provider.transport_type == "api"
+            and provider.name == "Resend"
+        ):
 
             client = ResendProvider()
+
+        else:
+
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Unsupported provider "
+                    f"{provider.name}"
+                ),
+            )
 
         return client.send(
             recipient=recipient,
