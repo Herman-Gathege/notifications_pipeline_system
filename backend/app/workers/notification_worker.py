@@ -123,7 +123,12 @@ def process_notification(notification_id: str):
         )
 
         template = route["template"]
-        provider = route["provider"]
+
+        # provider = route["provider"]
+
+        provider_model, provider_client = provider_resolver.resolve(
+            notification.channel
+        )
 
         # -------------------------------------------------
         # Render Template
@@ -165,7 +170,8 @@ def process_notification(notification_id: str):
         # -------------------------------------------------
 
         delivery_payload = {
-            "provider": provider.name,
+            # "provider": provider.name,
+            "provider": provider_model.name,
             "channel": notification.channel,
             "recipient": recipient,
             "subject": rendered["subject"],
@@ -182,24 +188,54 @@ def process_notification(notification_id: str):
         # Simulate Successful Delivery
         # -------------------------------------------------
 
+        # elapsed = int((time.perf_counter() - start) * 1000)
+
+        # notification_service.update_notification(
+        #     notification,
+        #     recipient=recipient,
+        #     provider=provider.name,
+        #     status="delivered",
+        #     processing_time_ms=elapsed,
+        #     failure_reason=None,
+        # )
+
+        # event.status = "processed"
+        # event.is_processed = True
+
+        # db.commit()
+
+        # print("Notification processed successfully.")
+        # print("=" * 60)
+
+        # return {
+        #     "notification_id": notification.id,
+        #     "status": notification.status,
+        # }
+
+        result = provider_client.send(
+            recipient=recipient,
+            subject=rendered["subject"],
+            body=rendered["body"],
+        )
+
         elapsed = int((time.perf_counter() - start) * 1000)
 
         notification_service.update_notification(
             notification,
             recipient=recipient,
-            provider=provider.name,
-            status="delivered",
+            provider=provider_model.name,
+            status="delivered" if result["success"] else "failed",
             processing_time_ms=elapsed,
-            failure_reason=None,
+            failure_reason=result["error"],
         )
 
-        event.status = "processed"
-        event.is_processed = True
+        if result["success"]:
+            event.status = "processed"
+            event.is_processed = True
 
         db.commit()
 
-        print("Notification processed successfully.")
-        print("=" * 60)
+        print(result)
 
         return {
             "notification_id": notification.id,
