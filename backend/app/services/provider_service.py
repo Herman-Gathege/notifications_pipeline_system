@@ -17,6 +17,8 @@ from app.services.provider_resolver import ProviderResolver
 
 from app.providers.base import NotificationProvider
 
+from app.providers.smtp_provider import SMTPProvider
+
 
 class ProviderService:
     """
@@ -114,9 +116,26 @@ class ProviderService:
                 detail="Provider is disabled.",
             )
 
-        resolver = ProviderResolver(self.repository)
+        # resolver = ProviderResolver(self.repository)
 
-        _, client = resolver.resolve(provider.channel)
+        # _, client = resolver.resolve(provider.channel)
+
+        # return client.send(
+        #     recipient=recipient,
+        #     subject="Notification Platform Test",
+        #     body=(
+        #         "Congratulations!\n\n"
+        #         "Your notification provider is configured correctly."
+        #     ),
+        # )
+
+        if provider.transport_type == "smtp":
+
+            client = SMTPProvider(provider)
+
+        else:
+
+            client = ResendProvider()
 
         return client.send(
             recipient=recipient,

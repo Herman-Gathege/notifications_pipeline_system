@@ -22,63 +22,38 @@ class ProviderResolver:
     ):
         self.repository = repository
 
-    def resolve(self, channel: str):
-        """
-        Returns:
-
-            (
-                Provider model,
-                Provider implementation
+    def resolve(
+            self,
+            channel: str,
+        ):
+            provider = self.repository.get_default_by_channel(
+                channel
             )
 
-        Raises:
-            ValueError
-                if no active provider exists
-                or no implementation exists.
-        """
+            if provider is None:
+                raise ValueError(
+                    f"No active provider configured for '{channel}'."
+                )
 
-        provider = self.repository.get_default_by_channel(
-            channel
-        )
+            if provider.transport_type == "smtp":
 
-        if provider is None:
-            raise ValueError(
-                f"No active provider configured for '{channel}'."
+                from app.providers.smtp_provider import SMTPProvider
+
+                return (
+                    provider,
+                    SMTPProvider(provider),
+                )
+
+            implementation = self.IMPLEMENTATIONS.get(
+                provider.name,
             )
 
-        # implementation = self.IMPLEMENTATIONS.get(
-        #     provider.name
-        # )
-
-        # if implementation is None:
-        #     raise ValueError(
-        #         f"No implementation for provider '{provider.name}'."
-        #     )
-
-        # return (
-        #     provider,
-        #     implementation(),
-        # )
-
-        if provider.transport_type == "smtp":
+            if implementation is None:
+                raise ValueError(
+                    f"No implementation for provider '{provider.name}'."
+                )
 
             return (
                 provider,
-                SMTPProvider(provider),
+                implementation(),
             )
-
-        implementation = self.IMPLEMENTATIONS.get(
-            provider.name,
-        )
-
-        if implementation is None:
-            raise ValueError(
-                f"No implementation for provider '{provider.name}'."
-            )
-
-        return (
-            provider,
-            implementation(),
-        )
-
-    

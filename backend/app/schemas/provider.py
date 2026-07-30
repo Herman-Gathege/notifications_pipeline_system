@@ -56,7 +56,7 @@ class ProviderResponse(ProviderBase):
     model_config = ConfigDict(from_attributes=True)
 
 class ProviderTestRequest(BaseModel):
-    provider: str
+    # provider: str
     recipient: EmailStr
 
 
