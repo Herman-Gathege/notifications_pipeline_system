@@ -1,6 +1,7 @@
 # backend/app/services/provider_resolver.py
 
 from app.providers.email.resend_provider import ResendProvider
+from app.providers.smtp_provider import SMTPProvider
 from app.repositories.provider_repository import ProviderRepository
 
 
@@ -12,6 +13,7 @@ class ProviderResolver:
 
     IMPLEMENTATIONS = {
         "Resend": ResendProvider,
+        "SMTP": SMTPProvider,
     }
 
     def __init__(
@@ -44,8 +46,29 @@ class ProviderResolver:
                 f"No active provider configured for '{channel}'."
             )
 
+        # implementation = self.IMPLEMENTATIONS.get(
+        #     provider.name
+        # )
+
+        # if implementation is None:
+        #     raise ValueError(
+        #         f"No implementation for provider '{provider.name}'."
+        #     )
+
+        # return (
+        #     provider,
+        #     implementation(),
+        # )
+
+        if provider.transport_type == "smtp":
+
+            return (
+                provider,
+                SMTPProvider(provider),
+            )
+
         implementation = self.IMPLEMENTATIONS.get(
-            provider.name
+            provider.name,
         )
 
         if implementation is None:

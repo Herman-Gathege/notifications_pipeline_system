@@ -10,8 +10,22 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 class ProviderBase(BaseModel):
     name: str
     channel: str
+
     priority: int = 1
     is_active: bool = True
+
+    transport_type: str = "api"
+
+    smtp_host: str | None = None
+    smtp_port: int | None = None
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+
+    use_tls: bool = True
+    use_ssl: bool = False
+
+    from_email: str | None = None
+    from_name: str | None = None
 
 
 class ProviderCreate(ProviderBase):
@@ -23,6 +37,15 @@ class ProviderUpdate(BaseModel):
     channel: str | None = None
     priority: int | None = None
     is_active: bool | None = None
+    transport_type: str | None = None
+    smtp_host: str | None = None
+    smtp_port: int | None = None
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    use_tls: bool | None = None
+    use_ssl: bool | None = None
+    from_email: str | None = None
+    from_name: str | None = None
 
 
 class ProviderResponse(ProviderBase):

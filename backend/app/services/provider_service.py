@@ -51,6 +51,19 @@ class ProviderService:
             channel=data.channel,
             priority=data.priority,
             is_active=data.is_active,
+
+            transport_type=data.transport_type,
+
+            smtp_host=data.smtp_host,
+            smtp_port=data.smtp_port,
+            smtp_username=data.smtp_username,
+            smtp_password=data.smtp_password,
+
+            use_tls=data.use_tls,
+            use_ssl=data.use_ssl,
+
+            from_email=data.from_email,
+            from_name=data.from_name,
         )
 
         try:
