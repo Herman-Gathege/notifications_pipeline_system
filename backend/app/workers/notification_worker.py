@@ -126,9 +126,35 @@ def process_notification(notification_id: str):
 
         # provider = route["provider"]
 
-        provider_model, provider_client = provider_resolver.resolve(
-            notification.channel
-        )
+        try:
+            provider_model, provider_client = (
+                provider_resolver.resolve(
+                    notification.channel
+                )
+            )
+
+        except ValueError as exc:
+
+            elapsed = int(
+                (time.perf_counter() - start) * 1000
+            )
+
+            notification_service.update_notification(
+                notification,
+                recipient="",
+                provider="unknown",
+                status="failed",
+                processing_time_ms=elapsed,
+                failure_reason=str(exc),
+            )
+
+            db.commit()
+
+            return {
+                "notification_id": notification.id,
+                "status": "failed",
+                "reason": str(exc),
+            }
 
         # -------------------------------------------------
         # Render Template
@@ -188,30 +214,7 @@ def process_notification(notification_id: str):
         # Simulate Successful Delivery
         # -------------------------------------------------
 
-        # elapsed = int((time.perf_counter() - start) * 1000)
-
-        # notification_service.update_notification(
-        #     notification,
-        #     recipient=recipient,
-        #     provider=provider.name,
-        #     status="delivered",
-        #     processing_time_ms=elapsed,
-        #     failure_reason=None,
-        # )
-
-        # event.status = "processed"
-        # event.is_processed = True
-
-        # db.commit()
-
-        # print("Notification processed successfully.")
-        # print("=" * 60)
-
-        # return {
-        #     "notification_id": notification.id,
-        #     "status": notification.status,
-        # }
-
+       
         result = provider_client.send(
             recipient=recipient,
             subject=rendered["subject"],

@@ -74,3 +74,5 @@ class ReportRepository:
         self.db.refresh(report)
 
         return report
+
+    

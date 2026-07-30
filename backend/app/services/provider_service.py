@@ -1,30 +1,38 @@
 # backend/app/services/provider_service.py
 
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+
 from app.models.provider import Provider
 from app.repositories.provider_repository import ProviderRepository
 from app.schemas.provider import (
     ProviderCreate,
+    ProviderTestRequest,
     ProviderUpdate,
 )
 
-from fastapi import HTTPException
-from sqlalchemy.exc import IntegrityError
+from app.providers.email.resend_provider import ResendProvider
+
+from app.services.provider_resolver import ProviderResolver
+
+from app.providers.base import NotificationProvider
 
 
 class ProviderService:
     """
     Handles CRUD operations for notification providers.
 
-    Sprint 4:
-    - Create providers
-    - Update providers
-    - List providers
-    - Enable/Disable providers
+    Sprint 4
+    --------
+    • CRUD
+    • Enable / Disable
 
-    Sprint 5:
-    - Health checks
-    - Failover
-    - Metrics
+    Sprint 5
+    --------
+    • Provider selection
+    • Health checks
+    • Provider testing
+    • Failover
     """
 
     def __init__(
@@ -45,7 +53,6 @@ class ProviderService:
             is_active=data.is_active,
         )
 
-        # return self.repository.create(provider)
         try:
             return self.repository.create(provider)
 
@@ -62,7 +69,50 @@ class ProviderService:
         self,
         provider_id: str,
     ) -> Provider | None:
+
         return self.repository.get_by_id(provider_id)
+
+    def get_default(
+        self,
+        channel: str,
+    ) -> Provider | None:
+
+        return self.repository.get_default_by_channel(channel)
+
+    def test_provider(
+        self,
+        provider_id: str,
+        recipient: str,
+    ) -> dict:
+
+        provider = self.repository.get_by_id(
+            provider_id,
+        )
+
+        if provider is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Provider not found.",
+            )
+
+        if not provider.is_active:
+            raise HTTPException(
+                status_code=400,
+                detail="Provider is disabled.",
+            )
+
+        resolver = ProviderResolver(self.repository)
+
+        _, client = resolver.resolve(provider.channel)
+
+        return client.send(
+            recipient=recipient,
+            subject="Notification Platform Test",
+            body=(
+                "Congratulations!\n\n"
+                "Your notification provider is configured correctly."
+            ),
+        )
 
     def update(
         self,
@@ -79,6 +129,34 @@ class ProviderService:
 
         for field, value in update_data.items():
             setattr(provider, field, value)
+
+        return self.repository.update(provider)
+
+    def enable(
+        self,
+        provider_id: str,
+    ) -> Provider | None:
+
+        provider = self.repository.get_by_id(provider_id)
+
+        if provider is None:
+            return None
+
+        provider.is_active = True
+
+        return self.repository.update(provider)
+
+    def disable(
+        self,
+        provider_id: str,
+    ) -> Provider | None:
+
+        provider = self.repository.get_by_id(provider_id)
+
+        if provider is None:
+            return None
+
+        provider.is_active = False
 
         return self.repository.update(provider)
 
