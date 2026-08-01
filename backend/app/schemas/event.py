@@ -12,11 +12,15 @@ class EventPayload(BaseModel):
     email: EmailStr
     phone: str
     amount: str
+    reference: str | None = None
 
 
 class EventCreate(BaseModel):
     event_type: str
     payload: EventPayload
+
+    # NEW
+    channels: list[str]
 
 
 class EventResponse(BaseModel):
