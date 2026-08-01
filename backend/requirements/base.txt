@@ -79,3 +79,5 @@ django
 sendgrid
 
 resend
+
+africastalking==1.2.9
