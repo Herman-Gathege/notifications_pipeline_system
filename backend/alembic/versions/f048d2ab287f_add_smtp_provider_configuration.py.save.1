@@ -19,8 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Add transport_type with a temporary server default so
-    # existing provider rows receive a value.
+    # Existing providers become API providers by default.
     op.add_column(
         "providers",
         sa.Column(
@@ -31,7 +30,6 @@ def upgrade() -> None:
         ),
     )
 
-    # Remove the default so new rows use the application value.
     op.alter_column(
         "providers",
         "transport_type",
