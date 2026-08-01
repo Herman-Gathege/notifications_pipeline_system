@@ -55,6 +55,12 @@ class AfricasTalkingProvider(NotificationProvider):
 
             response.raise_for_status()
 
+            print("=" * 80)
+            print("AFRICA'S TALKING RESPONSE")
+            print(response.status_code)
+            print(response.text)
+            print("=" * 80)
+
             data = response.json()
 
             return {
