@@ -42,6 +42,16 @@ from app.services.template_service import (
     TemplateService,
 )
 
+from app.repositories.apikey_repository import APIKeyRepository
+
+from app.services.apikey_service import APIKeyService
+
+from app.services.authentication_service import AuthenticationService
+
+from app.repositories.report_repository import ReportRepository
+
+from app.services.report_service import ReportService
+
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
@@ -116,4 +126,23 @@ def get_routing_service(
     return RoutingService(
         template_service,
         provider_resolver,
+    )
+
+def get_authentication_service(
+    db: Session = Depends(get_db),
+):
+    api_key_service = APIKeyService(
+        APIKeyRepository(db),
+    )
+
+    return AuthenticationService(
+        api_key_service,
+    )
+
+
+def get_report_service(
+    db: Session = Depends(get_db),
+):
+    return ReportService(
+        ReportRepository(db),
     )

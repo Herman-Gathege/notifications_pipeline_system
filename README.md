@@ -241,6 +241,10 @@ Start all containers.
 
 ```bash
 docker compose up -d
+docker compose exec notification-api bash
+docker compose exec notification-postgres psql -U postgres -d notification_platform
+
+docker compose exec notification-api bash
 ```
 
 View running containers.

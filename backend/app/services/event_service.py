@@ -9,6 +9,7 @@ from app.schemas.event import EventCreate
 
 # from app.workers.notification_worker import process_notification
 
+
 class EventService:
     def __init__(
         self,
@@ -18,29 +19,44 @@ class EventService:
         self.event_repository = event_repository
         self.notification_repository = notification_repository
 
-    def create_event(self, data: EventCreate) -> Event:
+    # def create_event(self, data: EventCreate) -> Event:
+
+    #     event = Event(
+    #         application_id=data.application_id,
+    #         event_type=data.event_type,
+    #         payload=data.payload,
+    #     )
+
+    def create_event(
+        self,
+        data: EventCreate,
+        application_id: str,
+    ) -> Event:
 
         event = Event(
-            application_id=data.application_id,
+            application_id=application_id,
             event_type=data.event_type,
-            payload=data.payload,
+            payload=data.payload.model_dump(),
         )
 
         event = self.event_repository.create(event)
 
-        notification = Notification(
-            event_id=event.id,
-        )
-
-
-        notification = self.notification_repository.create(notification)
-
-
-        # enqueue background job
-        # Lazy import to avoid circular imports
         from app.workers.notification_worker import process_notification
 
-        process_notification.delay(notification.id)
+        for channel in data.channels:
+
+            notification = Notification(
+                event_id=event.id,
+                channel=channel,
+            )
+
+            notification = self.notification_repository.create(
+                notification
+            )
+
+            process_notification.delay(
+                notification.id
+            )
 
         return event
 

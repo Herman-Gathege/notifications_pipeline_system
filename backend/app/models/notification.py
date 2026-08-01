@@ -62,3 +62,17 @@ class Notification(Base):
         "Event",
         back_populates="notifications",
     )
+
+    provider: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    processing_time_ms: Mapped[int | None] = mapped_column(
+        nullable=True,
+    )
+
+    failure_reason: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )

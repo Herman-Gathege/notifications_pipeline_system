@@ -1,30 +1,40 @@
 # backend/app/services/provider_service.py
 
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+
 from app.models.provider import Provider
 from app.repositories.provider_repository import ProviderRepository
 from app.schemas.provider import (
     ProviderCreate,
+    ProviderTestRequest,
     ProviderUpdate,
 )
 
-from fastapi import HTTPException
-from sqlalchemy.exc import IntegrityError
+from app.providers.email.resend_provider import ResendProvider
+
+from app.services.provider_resolver import ProviderResolver
+
+from app.providers.base import NotificationProvider
+
+from app.providers.smtp_provider import SMTPProvider
 
 
 class ProviderService:
     """
     Handles CRUD operations for notification providers.
 
-    Sprint 4:
-    - Create providers
-    - Update providers
-    - List providers
-    - Enable/Disable providers
+    Sprint 4
+    --------
+    • CRUD
+    • Enable / Disable
 
-    Sprint 5:
-    - Health checks
-    - Failover
-    - Metrics
+    Sprint 5
+    --------
+    • Provider selection
+    • Health checks
+    • Provider testing
+    • Failover
     """
 
     def __init__(
@@ -43,9 +53,21 @@ class ProviderService:
             channel=data.channel,
             priority=data.priority,
             is_active=data.is_active,
+
+            transport_type=data.transport_type,
+
+            smtp_host=data.smtp_host,
+            smtp_port=data.smtp_port,
+            smtp_username=data.smtp_username,
+            smtp_password=data.smtp_password,
+
+            use_tls=data.use_tls,
+            use_ssl=data.use_ssl,
+
+            from_email=data.from_email,
+            from_name=data.from_name,
         )
 
-        # return self.repository.create(provider)
         try:
             return self.repository.create(provider)
 
@@ -62,7 +84,69 @@ class ProviderService:
         self,
         provider_id: str,
     ) -> Provider | None:
+
         return self.repository.get_by_id(provider_id)
+
+    def get_default(
+        self,
+        channel: str,
+    ) -> Provider | None:
+
+        return self.repository.get_default_by_channel(channel)
+
+    def test_provider(
+        self,
+        provider_id: str,
+        recipient: str,
+    ) -> dict:
+
+        provider = self.repository.get_by_id(
+            provider_id,
+        )
+
+        if provider is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Provider not found.",
+            )
+
+        if not provider.is_active:
+            raise HTTPException(
+                status_code=400,
+                detail="Provider is disabled.",
+            )
+
+        
+
+        if provider.transport_type == "smtp":
+
+            client = SMTPProvider(provider)
+
+        elif (
+            provider.transport_type == "api"
+            and provider.name == "Resend"
+        ):
+
+            client = ResendProvider()
+
+        else:
+
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Unsupported provider "
+                    f"{provider.name}"
+                ),
+            )
+
+        return client.send(
+            recipient=recipient,
+            subject="Notification Platform Test",
+            body=(
+                "Congratulations!\n\n"
+                "Your notification provider is configured correctly."
+            ),
+        )
 
     def update(
         self,
@@ -79,6 +163,34 @@ class ProviderService:
 
         for field, value in update_data.items():
             setattr(provider, field, value)
+
+        return self.repository.update(provider)
+
+    def enable(
+        self,
+        provider_id: str,
+    ) -> Provider | None:
+
+        provider = self.repository.get_by_id(provider_id)
+
+        if provider is None:
+            return None
+
+        provider.is_active = True
+
+        return self.repository.update(provider)
+
+    def disable(
+        self,
+        provider_id: str,
+    ) -> Provider | None:
+
+        provider = self.repository.get_by_id(provider_id)
+
+        if provider is None:
+            return None
+
+        provider.is_active = False
 
         return self.repository.update(provider)
 

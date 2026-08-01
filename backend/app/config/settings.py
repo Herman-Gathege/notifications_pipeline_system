@@ -1,7 +1,9 @@
+# backend/app/config/settings.py
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parents[3]
+
 
 class Settings(BaseSettings):
     APP_NAME: str = "Notification Platform"
@@ -13,10 +15,22 @@ class Settings(BaseSettings):
 
     REDIS_URL: str
 
-    model_config = SettingsConfigDict(
-        env_file=BASE_DIR / ".env",
-        extra="ignore",
-    )
+    # SENDGRID_API_KEY: str
+    # SENDGRID_FROM_EMAIL: str
+    # SENDGRID_FROM_NAME: str
+
+    RESEND_API_KEY: str
+    RESEND_FROM_EMAIL: str
+    RESEND_FROM_NAME: str
+
+    AFRICASTALKING_USERNAME: str = "sandbox"
+    AFRICASTALKING_API_KEY: str = ""
+    AFRICASTALKING_SENDER_ID: str | None = None
+
+model_config = SettingsConfigDict(
+    env_file=BASE_DIR / ".env",
+    extra="ignore",
+)
 
 
 settings = Settings()

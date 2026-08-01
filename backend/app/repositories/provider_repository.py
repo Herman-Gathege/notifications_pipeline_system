@@ -1,23 +1,14 @@
 # backend/app/repositories/provider_repository.py
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.provider import Provider
-
-from sqlalchemy.exc import IntegrityError
-
 
 
 class ProviderRepository:
     def __init__(self, db: Session):
         self.db = db
-
-    # def create(self, provider: Provider) -> Provider:
-    #     self.db.add(provider)
-    #     self.db.commit()
-    #     self.db.refresh(provider)
-    #     return provider
-
 
     def create(
         self,
@@ -37,17 +28,33 @@ class ProviderRepository:
 
         return provider
 
-    def get_by_id(self, provider_id):
+    def get_by_id(
+        self,
+        provider_id: str,
+    ) -> Provider | None:
+
         return (
             self.db.query(Provider)
             .filter(Provider.id == provider_id)
             .first()
         )
 
+    # def get_by_name(
+    #     self,
+    #     name: str,
+    # ) -> Provider | None:
+
+    #     return (
+    #         self.db.query(Provider)
+    #         .filter(Provider.name == name)
+    #         .first()
+    #     )
+
     def get_active_by_channel(
         self,
         channel: str,
     ) -> list[Provider]:
+
         return (
             self.db.query(Provider)
             .filter(
@@ -58,7 +65,23 @@ class ProviderRepository:
             .all()
         )
 
+    def get_default_by_channel(
+        self,
+        channel: str,
+    ) -> Provider | None:
+
+        return (
+            self.db.query(Provider)
+            .filter(
+                Provider.channel == channel,
+                Provider.is_active.is_(True),
+            )
+            .order_by(Provider.priority.asc())
+            .first()
+        )
+
     def list(self) -> list[Provider]:
+
         return (
             self.db.query(Provider)
             .order_by(
@@ -68,11 +91,30 @@ class ProviderRepository:
             .all()
         )
 
-    def update(self, provider: Provider) -> Provider:
+    def update(
+        self,
+        provider: Provider,
+    ) -> Provider:
+
         self.db.commit()
         self.db.refresh(provider)
+
         return provider
 
-    def delete(self, provider: Provider) -> None:
+    def delete(
+        self,
+        provider: Provider,
+    ) -> None:
+
         self.db.delete(provider)
         self.db.commit()
+
+    def get_by_name(
+            self,
+            name: str,
+        ) -> Provider | None:
+            return (
+                self.db.query(Provider)
+                .filter(Provider.name == name)
+                .first()
+            )

@@ -43,6 +43,54 @@ class Provider(Base):
         nullable=False,
     )
 
+    transport_type: Mapped[str] = mapped_column(
+    String(20),
+    default="api",
+    nullable=False,
+    )
+
+    smtp_host: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    smtp_port: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+
+    smtp_username: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    smtp_password: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    use_tls: Mapped[bool] = mapped_column(
+        Boolean,
+        default=True,
+        nullable=False,
+    )
+
+    use_ssl: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    from_email: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    from_name: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
     created_at: Mapped[DateTime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

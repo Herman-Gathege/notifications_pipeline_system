@@ -1,9 +1,12 @@
+# backend/app/api/v1/providers.py
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.dependencies import get_provider_service
 from app.schemas.provider import (
     ProviderCreate,
     ProviderResponse,
+    ProviderTestRequest,
+    ProviderTestResponse,
     ProviderUpdate,
 )
 from app.services.provider_service import ProviderService
@@ -59,6 +62,17 @@ def update_provider(
     return provider
 
 
+# @router.post(
+#     "/test",
+#     response_model=ProviderTestResponse,
+# )
+# def test_provider(
+#     data: ProviderTestRequest,
+#     service: ProviderService = Depends(get_provider_service),
+# ):
+#     return service.test_provider(data)
+
+
 @router.delete(
     "/{provider_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -76,3 +90,17 @@ def delete_provider(
         )
 
     return
+
+@router.post(
+    "/{provider_id}/test",
+    response_model=ProviderTestResponse,
+)
+def test_provider(
+    provider_id: str,
+    data: ProviderTestRequest,
+    service: ProviderService = Depends(get_provider_service),
+):
+    return service.test_provider(
+        provider_id=provider_id,
+        recipient=data.recipient,
+    )

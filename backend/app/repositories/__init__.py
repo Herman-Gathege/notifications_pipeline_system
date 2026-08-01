@@ -4,6 +4,7 @@ from .event_repository import EventRepository
 from .notification_repository import NotificationRepository
 from .provider_repository import ProviderRepository
 from .template_repository import TemplateRepository
+from .report_repository import ReportRepository
 
 __all__ = [
     "ApplicationRepository",
@@ -12,4 +13,5 @@ __all__ = [
     "NotificationRepository",
     "ProviderRepository",
     "TemplateRepository",
+    "ReportRepository",
 ]

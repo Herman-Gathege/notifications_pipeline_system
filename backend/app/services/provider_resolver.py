@@ -1,34 +1,73 @@
 # backend/app/services/provider_resolver.py
-
-from app.models.provider import Provider
+from app.providers.email.resend_provider import ResendProvider
+from app.providers.smtp_provider import SMTPProvider
 from app.repositories.provider_repository import ProviderRepository
+from app.providers.sms.sms_provider import SMSProvider
 
 
 class ProviderResolver:
     """
-    Chooses the best provider for a channel.
-
-    Sprint 4:
-    - Active providers only
-    - Lowest priority number wins
-
-    Sprint 5:
-    - Failover
-    - Health checks
-    - Provider weights
+    Resolves the active provider implementation
+    for a notification channel.
     """
 
-    def __init__(self, repository: ProviderRepository):
+    def __init__(
+        self,
+        repository: ProviderRepository,
+    ):
         self.repository = repository
 
     def resolve(
         self,
         channel: str,
-    ) -> Provider | None:
+    ):
+        """
+        Returns:
 
-        providers = self.repository.get_active_by_channel(channel)
+            (
+                Provider model,
+                Provider implementation
+            )
+        """
 
-        if not providers:
-            return None
+        provider = self.repository.get_default_by_channel(
+            channel
+        )
 
-        return providers[0]
+        if provider is None:
+            raise ValueError(
+                f"No active provider configured for '{channel}'."
+            )
+
+        if provider.transport_type == "smtp":
+
+                implementation = SMTPProvider(
+                    provider,
+                )
+
+        elif (
+            provider.transport_type == "api"
+            and provider.name == "Resend"
+        ):
+
+            implementation = ResendProvider()
+
+        elif (
+            provider.transport_type == "api"
+            and provider.name == "Africa's Talking"
+        ):
+
+            implementation = SMSProvider()
+
+        else:
+
+            raise ValueError(
+                f"No implementation for provider "
+                f"'{provider.name}' "
+                f"({provider.transport_type})."
+            )
+
+        return (
+            provider,
+            implementation,
+        )

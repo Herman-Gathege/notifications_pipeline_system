@@ -1,4 +1,5 @@
-# backend/app/services/notification_service.py
+# # backend/app/services/notification_service.py
+
 from app.models.notification import Notification
 from app.repositories.notification_repository import NotificationRepository
 
@@ -34,4 +35,22 @@ class NotificationService:
         status: str,
     ) -> Notification:
         notification.status = status
+        return self.repository.update(notification)
+
+    def update_notification(
+        self,
+        notification: Notification,
+        *,
+        recipient: str,
+        provider: str,
+        status: str,
+        processing_time_ms: int,
+        failure_reason: str | None = None,
+    ) -> Notification:
+        notification.recipient = recipient
+        notification.provider = provider
+        notification.status = status
+        notification.processing_time_ms = processing_time_ms
+        notification.failure_reason = failure_reason
+
         return self.repository.update(notification)

@@ -5,6 +5,7 @@ from app.models.event import Event
 from app.models.notification import Notification
 from app.models.template import Template
 from app.models.provider import Provider
+from .notification_report import NotificationReport
 
 __all__ = [
     "Application",
@@ -13,4 +14,5 @@ __all__ = [
     "Notification",
     "Template",
     "Provider",
+    "NotificationReport",
 ]
