@@ -20,7 +20,10 @@ import time
 
 from app.repositories.notification_repository import NotificationRepository
 from app.services.notification_service import NotificationService
-
+from app.monitoring.metrics import (
+    notifications_processed_total,
+    notification_processing_seconds,
+)
 
 @celery_app.task(name="app.workers.notification_worker.process_notification")
 def process_notification(notification_id: str):
@@ -139,6 +142,9 @@ def process_notification(notification_id: str):
             elapsed = int(
                 (time.perf_counter() - start) * 1000
             )
+
+            notification_processing_seconds.observe(elapsed / 1000)
+            notifications_processed_total.inc()
 
             notification_service.update_notification(
                 notification,
