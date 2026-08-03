@@ -15,7 +15,7 @@ def get_current_application(
     if not authorization.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid bearer token",
+            detail="Authorization header must use the Bearer scheme. Example: Bearer <token>",
         )
 
     token = authorization.replace("Bearer ", "")
@@ -25,7 +25,7 @@ def get_current_application(
     if payload is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
+            detail="The provided token is invalid or has expired. Please obtain a new token.",
         )
 
     return payload

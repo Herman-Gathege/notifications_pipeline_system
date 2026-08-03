@@ -42,7 +42,7 @@ def generate_token(
     if token is None:
         raise HTTPException(
             status_code=401,
-            detail="Invalid credentials.",
+            detail="The API key or secret is incorrect. Please verify your credentials and try again.",
         )
 
     return TokenResponse(access_token=token)

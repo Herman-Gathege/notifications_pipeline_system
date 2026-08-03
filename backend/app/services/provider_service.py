@@ -134,7 +134,7 @@ class ProviderService:
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    f"Unsupported provider "
+                    f"Provider '{provider.name}' with transport type '{provider.transport_type}' has no supported implementation. Supported combinations: Resend (api), SMTP (smtp), Africa's Talking (api). "
                     f"{provider.name}"
                 ),
             )
