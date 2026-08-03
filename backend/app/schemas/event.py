@@ -4,22 +4,12 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr
-
-
-class EventPayload(BaseModel):
-    customer: str
-    email: EmailStr
-    phone: str
-    amount: str
-    reference: str | None = None
+from pydantic import BaseModel, ConfigDict
 
 
 class EventCreate(BaseModel):
     event_type: str
-    payload: EventPayload
-
-    # NEW
+    payload: dict
     channels: list[str]
 
 

@@ -7,6 +7,8 @@ from app.repositories.notification_repository import NotificationRepository
 
 from app.schemas.event import EventCreate
 
+from app.services.event_validation_service import EventValidationService
+
 # from app.workers.notification_worker import process_notification
 
 
@@ -33,10 +35,15 @@ class EventService:
         application_id: str,
     ) -> Event:
 
+        validated_payload = EventValidationService.validate(
+            data.event_type,
+            data.payload,
+        )
+
         event = Event(
             application_id=application_id,
             event_type=data.event_type,
-            payload=data.payload.model_dump(),
+            payload=validated_payload,
         )
 
         event = self.event_repository.create(event)
