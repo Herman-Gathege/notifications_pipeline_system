@@ -4,6 +4,8 @@ from app.models.notification import Notification
 from app.repositories.notification_repository import NotificationRepository
 
 
+
+
 class NotificationService:
     def __init__(self, repository: NotificationRepository):
         self.repository = repository
@@ -54,3 +56,26 @@ class NotificationService:
         notification.failure_reason = failure_reason
 
         return self.repository.update(notification)
+
+
+    def retry_notification(
+        self,
+        notification_id: str,
+    ) -> Notification:
+
+        notification = self.repository.get_by_id(notification_id)
+
+        if notification is None:
+            raise ValueError("Notification not found")
+
+        notification.status = "queued"
+        notification.failure_reason = None
+
+        self.repository.update(notification)
+
+        from app.workers.notification_worker import process_notification
+
+
+        process_notification.delay(notification.id)
+
+        return notification

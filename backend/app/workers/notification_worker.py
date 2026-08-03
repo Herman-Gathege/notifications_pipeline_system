@@ -85,11 +85,12 @@ def process_notification(notification_id: str):
 
         if event is None:
 
-            notification.status = "failed"
+            notification.status = "dead_letter"
+            notification.failure_reason = "event not found"
             db.commit()
 
             return {
-                "status": "failed",
+                "status": "dead_letter",
                 "reason": "event not found",
             }
 
@@ -223,11 +224,26 @@ def process_notification(notification_id: str):
 
         elapsed = int((time.perf_counter() - start) * 1000)
 
+        # notification_service.update_notification(
+        #     notification,
+        #     recipient=recipient,
+        #     provider=provider_model.name,
+        #     status="delivered" if result["success"] else "failed",
+        #     processing_time_ms=elapsed,
+        #     failure_reason=result["error"],
+        # )
+
+        status = (
+            "delivered"
+            if result["success"]
+            else "dead_letter"
+        )
+
         notification_service.update_notification(
             notification,
             recipient=recipient,
             provider=provider_model.name,
-            status="delivered" if result["success"] else "failed",
+            status=status,
             processing_time_ms=elapsed,
             failure_reason=result["error"],
         )
@@ -251,11 +267,20 @@ def process_notification(notification_id: str):
 
         if "notification" in locals():
 
+            # notification_service.update_notification(
+            #     notification,
+            #     recipient="",
+            #     provider="unknown",
+            #     status="failed",
+            #     processing_time_ms=elapsed,
+            #     failure_reason=str(exc),
+            # )
+
             notification_service.update_notification(
                 notification,
-                recipient="",
-                provider="unknown",
-                status="failed",
+                recipient=notification.recipient,
+                provider=notification.provider or "unknown",
+                status="dead_letter",
                 processing_time_ms=elapsed,
                 failure_reason=str(exc),
             )
