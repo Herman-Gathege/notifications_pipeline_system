@@ -80,8 +80,8 @@ export default function EventsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Events</h1>
         <Dialog open={publishOpen} onOpenChange={setPublishOpen}>
-          <DialogTrigger asChild>
-            <Button>Publish Event</Button>
+          <DialogTrigger render={<Button />}>
+            Publish Event
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>

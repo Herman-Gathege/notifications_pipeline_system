@@ -85,8 +85,8 @@ export default function ApplicationsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Applications</h1>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>Create Application</Button>
+          <DialogTrigger render={<Button />}>
+            Create Application
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -159,10 +159,8 @@ export default function ApplicationsPage() {
                       Edit
                     </Button>
                     <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">
-                          Delete
-                        </Button>
+                      <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
+                        Delete
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>

@@ -114,8 +114,8 @@ export default function TemplatesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Templates</h1>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>Create Template</Button>
+          <DialogTrigger render={<Button />}>
+            Create Template
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
@@ -190,8 +190,8 @@ export default function TemplatesPage() {
                   <TableCell className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={() => { setEditingTemplate(tmpl); setEditData({ name: tmpl.name, event_type: tmpl.event_type, channel: tmpl.channel, subject: tmpl.subject || "", body: tmpl.body }) }}>Edit</Button>
                     <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">Delete</Button>
+                      <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
+                        Delete
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader><AlertDialogTitle>Delete Template</AlertDialogTitle><AlertDialogDescription>Are you sure you want to delete "{tmpl.name}"?</AlertDialogDescription></AlertDialogHeader>

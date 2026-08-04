@@ -115,8 +115,8 @@ export default function ProvidersPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Providers</h1>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>Add Provider</Button>
+          <DialogTrigger render={<Button />}>
+            Add Provider
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -241,10 +241,8 @@ export default function ProvidersPage() {
                       {provider.is_active ? "Disable" : "Enable"}
                     </Button>
                     <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">
-                          Delete
-                        </Button>
+                      <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
+                        Delete
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>

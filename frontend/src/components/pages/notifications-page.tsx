@@ -100,8 +100,8 @@ export default function NotificationsPage() {
                   <TableCell>
                     {notif.status === "failed" || notif.status === "dead_letter" ? (
                       <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm">Retry</Button>
+                        <AlertDialogTrigger render={<Button variant="outline" size="sm" />}>
+                          Retry
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
