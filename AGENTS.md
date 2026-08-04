@@ -85,7 +85,7 @@ docker compose up --build
 ```
 
 Services:
-- API: `http://localhost:8000` (or `BACKEND_PORT`)
+- API: `http://localhost:8001` (or `BACKEND_PORT`)
 - Frontend: `http://localhost:5173` (or `FRONTEND_PORT`)
 - Nginx: `http://localhost:80` (or `NGINX_PORT`)
 - Swagger: `http://localhost/docs`
