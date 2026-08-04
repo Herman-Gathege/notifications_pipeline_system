@@ -10,7 +10,10 @@
 
     "ignoreDeprecations": "6.0",
 
-    
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
 
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,

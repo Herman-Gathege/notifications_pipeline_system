@@ -1,5 +1,5 @@
 // frontend/src/App.tsx
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getToken, setToken } from "@/hooks/use-api";
 import Dashboard from "@/components/dashboard";
@@ -22,11 +22,6 @@ function App() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-
-  const handleLogout = () => {
-    setToken(null);
-    setTokenState(null);
-  };
 
   if (!token) {
     return <LoginPage />;
