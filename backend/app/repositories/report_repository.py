@@ -76,3 +76,9 @@ class ReportRepository:
         return report
 
     
+    def list_reports(self):
+        return (
+            self.db.query(NotificationReport)
+            .order_by(NotificationReport.created_at.desc())
+            .all()
+        )
