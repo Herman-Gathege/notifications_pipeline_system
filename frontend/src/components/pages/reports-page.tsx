@@ -36,7 +36,7 @@ interface Report {
 }
 
 export default function ReportsPage() {
-  const { get, post } = useApi()
+  const { get, post } = useApi<Report[]>()
 
   const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(false)
@@ -48,7 +48,7 @@ export default function ReportsPage() {
     try {
       setLoading(true)
 
-      const data = await get<Report[]>("/api/v1/reports")
+      const data = await get("/api/v1/reports")
 
       setReports(data)
       setError("")
@@ -67,12 +67,7 @@ export default function ReportsPage() {
       setError("")
       setLastReport(null)
 
-      const report = await post<Report>(
-        "/api/v1/reports/generate",
-        {}
-      )
-
-      setLastReport(report)
+      await post("/api/v1/reports/generate", {})
 
       await fetchReports()
     } catch (err) {

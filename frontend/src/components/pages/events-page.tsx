@@ -7,7 +7,22 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface Event {
@@ -91,7 +106,10 @@ export default function EventsPage() {
             <form onSubmit={handlePublish} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="event-type">Event Type</Label>
-                <Select value={publishData.event_type} onValueChange={(v) => setPublishData({ ...publishData, event_type: v })}>
+                 <Select value={publishData.event_type} onValueChange={(v) => {
+                       if (!v) return
+                       setPublishData({ ...publishData, event_type: v })
+                     }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {EVENT_TYPES.map((et) => (

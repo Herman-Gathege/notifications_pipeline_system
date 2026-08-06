@@ -15,13 +15,13 @@ WORKDIR /app
 # --------------------------------------------------
 # System Dependencies
 # --------------------------------------------------
-RUN apt-get update && apt-get install -y \
-    build-essential \
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
     curl \
     libpq-dev \
     postgresql-client \
     redis-tools \
-    && rm -rf /var/lib/apt/lists/*
+&& rm -rf /var/lib/apt/lists/*
 
 # --------------------------------------------------
 # Install Python Dependencies
@@ -29,8 +29,9 @@ RUN apt-get update && apt-get install -y \
 COPY requirements ./requirements
 COPY requirements.txt .
 
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip \
+    && pip install -r requirements.txt
 
 # --------------------------------------------------
 # Copy Project

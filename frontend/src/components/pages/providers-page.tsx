@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useApi } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -139,7 +139,10 @@ export default function ProvidersPage() {
                   <Label htmlFor="provider-channel">Channel</Label>
                   <Select
                     value={createData.channel}
-                    onValueChange={(v) => setCreateData({ ...createData, channel: v })}
+                    onValueChange={(v) => {
+                      if (!v) return
+                      setCreateData({ ...createData, channel: v })
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -155,7 +158,10 @@ export default function ProvidersPage() {
                   <Label htmlFor="provider-transport">Transport</Label>
                   <Select
                     value={createData.transport_type}
-                    onValueChange={(v) => setCreateData({ ...createData, transport_type: v })}
+                    onValueChange={(v) => {
+                      if (!v) return
+                      setCreateData({ ...createData, transport_type: v })
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />

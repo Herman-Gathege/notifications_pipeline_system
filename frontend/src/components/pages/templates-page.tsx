@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useApi } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -134,7 +134,10 @@ export default function TemplatesPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="tmpl-channel">Channel</Label>
-                  <Select value={createData.channel} onValueChange={(v) => setCreateData({ ...createData, channel: v })}>
+                  <Select value={createData.channel}                     onValueChange={(v) => {
+                      if (!v) return
+                      setCreateData({ ...createData, channel: v })
+                    }}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="email">Email</SelectItem>
@@ -215,7 +218,10 @@ export default function TemplatesPage() {
               <div className="space-y-2"><Label>Name</Label><Input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} required /></div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2"><Label>Event Type</Label><Input value={editData.event_type} onChange={(e) => setEditData({ ...editData, event_type: e.target.value })} required /></div>
-                <div className="space-y-2"><Label>Channel</Label><Select value={editData.channel} onValueChange={(v) => setEditData({ ...editData, channel: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="email">Email</SelectItem><SelectItem value="sms">SMS</SelectItem><SelectItem value="whatsapp">WhatsApp</SelectItem></SelectContent></Select></div>
+                <div className="space-y-2"><Label>Channel</Label><Select value={editData.channel}                     onValueChange={(v) => {
+                      if (!v) return
+                      setEditData({ ...editData, channel: v })
+                    }}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="email">Email</SelectItem><SelectItem value="sms">SMS</SelectItem><SelectItem value="whatsapp">WhatsApp</SelectItem></SelectContent></Select></div>
               </div>
               <div className="space-y-2"><Label>Subject</Label><Input value={editData.subject} onChange={(e) => setEditData({ ...editData, subject: e.target.value })} /></div>
               <div className="space-y-2"><Label>Body</Label><Textarea value={editData.body} onChange={(e) => setEditData({ ...editData, body: e.target.value })} rows={4} required /></div>

@@ -1,7 +1,7 @@
 // frontend/src/App.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { getToken, setToken } from "@/hooks/use-api";
+import { getToken } from "@/hooks/use-api";
 import Dashboard from "@/components/dashboard";
 import LoginPage from "@/components/pages/login-page";
 import DashboardPage from "@/components/pages/dashboard-page";
