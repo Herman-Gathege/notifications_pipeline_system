@@ -1,5 +1,8 @@
 # backend/app/config/settings.py
 from pathlib import Path
+from typing import Any
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parents[3]
@@ -8,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parents[3]
 class Settings(BaseSettings):
     APP_NAME: str = "Notification Platform"
     APP_VERSION: str = "1.0.0"
-    APP_ENV: str = "development"
+    APP_ENV: str = "production"
 
     DATABASE_URL: str
     SECRET_KEY: str
@@ -27,10 +30,19 @@ class Settings(BaseSettings):
     AFRICASTALKING_API_KEY: str = ""
     AFRICASTALKING_SENDER_ID: str | None = None
 
-model_config = SettingsConfigDict(
-    env_file=BASE_DIR / ".env",
-    extra="ignore",
-)
+    CORS_ORIGINS: list[str] = ["http://localhost"]
+
+    model_config = SettingsConfigDict(
+        env_file=BASE_DIR / ".env",
+        extra="ignore",
+    )
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            return [item.strip() for item in v.split(",") if item.strip()]
+        return v
 
 
 settings = Settings()

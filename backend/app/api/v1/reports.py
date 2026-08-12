@@ -22,3 +22,15 @@ def generate_report(
     ),
 ):
     return service.generate_report()
+
+
+    
+
+@router.get(
+    "",
+    response_model=list[ReportResponse],
+)
+def list_reports(
+    service: ReportService = Depends(get_report_service),
+):
+    return service.list_reports()

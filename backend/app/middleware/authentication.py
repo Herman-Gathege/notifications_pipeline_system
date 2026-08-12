@@ -34,7 +34,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             scheme, token = auth_header.split()
 
             if scheme.lower() != "bearer":
-                raise ValueError()
+                raise ValueError("Authorization scheme must be Bearer")
 
             jwt.decode(
                 token,
@@ -45,7 +45,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         except (JWTError, ValueError):
             return JSONResponse(
                 status_code=401,
-                content={"detail": "Invalid token"},
+                content={"detail": "The provided token is invalid or has expired. Please obtain a new token."},
             )
 
         return await call_next(request)

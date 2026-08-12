@@ -29,9 +29,8 @@ The initial release supports:
 
 - Email
 - SMS
-- WhatsApp
 
-Future channels can easily be added without modifying existing business logic.
+WhatsApp provider is planned. Future channels can easily be added without modifying existing business logic.
 
 ---
 
@@ -119,12 +118,6 @@ Core architectural principles:
 - React
 - Vite
 - TypeScript
-- TailwindCSS
-- React Router
-- TanStack Query
-- Axios
-- Zustand
-- React Hook Form
 
 ## Infrastructure
 
@@ -134,11 +127,11 @@ Core architectural principles:
 - PostgreSQL
 - Redis
 
-## Monitoring (Future)
+## Monitoring
 
-- Prometheus
-- Grafana
-- OpenTelemetry
+- Prometheus (metrics endpoint at `/metrics`)
+- Grafana (planned)
+- OpenTelemetry (planned)
 
 ---
 
@@ -165,6 +158,7 @@ Clone the repository.
 ```bash
 https://github.com/Herman-Gathege/notifications_pipeline_system
 cd notification-platform
+ssh local-36
 ```
 
 Copy the example environment file.
@@ -211,9 +205,10 @@ docker exec -it notification-api bash
 ```
 
 Check if port is open.
+
 ```bash
 sudo lsof -i :5173
----
+```
 
 # Docker
 
@@ -225,7 +220,7 @@ Current services include:
 |----------|---------|
 | nginx | Reverse Proxy |
 | api | FastAPI Backend |
-| frontend | React Admin Dashboard |
+| frontend | React Starter (Vite) |
 | postgres | PostgreSQL Database |
 | redis | Queue Broker |
 | worker | Background Worker |
@@ -233,9 +228,10 @@ Current services include:
 Future services:
 
 - Scheduler
-- Prometheus
 - Grafana
 - Mailhog
+
+> **Note:** `docker-compose.dev.yml`, `docker-compose.prod.yml`, and `Makefile` are currently empty placeholders.
 
 Start all containers.
 
@@ -274,16 +270,18 @@ notification-platform/
 ├── .github/
 
 ├── docker-compose.yml
-├── docker-compose.dev.yml
-├── docker-compose.prod.yml
+├── docker-compose.dev.yml  # empty placeholder
+├── docker-compose.prod.yml # empty placeholder
 
 ├── .env
 ├── .env.example
 
 ├── README.md
-├── Makefile
+├── Makefile                # empty placeholder
 └── .gitignore
 ```
+
+> **Note:** `django` and `sendgrid` are listed in `requirements/base.txt` but are not currently used in the codebase.
 
 ---
 
@@ -350,8 +348,9 @@ main
       ├── feature/application-auth
       ├── feature/event-processing
       ├── feature/templates
-      ├── feature/provider-engine
-      └── feature/admin-dashboard
+├── feature/sprint-5-provider-integrations
+├── feature/sprint-6-monitoring
+├── feature/admin-dashboard
 ```
 
 ## Branches

@@ -1,5 +1,5 @@
 # ==================================================
-# Notification Platform Backend
+# Notification Platform Backend (Production)
 # ==================================================
 
 FROM python:3.12-slim
@@ -9,19 +9,22 @@ FROM python:3.12-slim
 # --------------------------------------------------
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PIP_NO_CACHE_DIR=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
 # --------------------------------------------------
 # System Dependencies
 # --------------------------------------------------
-RUN apt-get update && apt-get install -y \
-    build-essential \
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
     curl \
     libpq-dev \
     postgresql-client \
     redis-tools \
-    && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/*
 
 # --------------------------------------------------
 # Install Python Dependencies
@@ -29,11 +32,12 @@ RUN apt-get update && apt-get install -y \
 COPY requirements ./requirements
 COPY requirements.txt .
 
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade pip \
+    && pip install -r requirements.txt
 
 # --------------------------------------------------
-# Copy Project
+# Copy Application
 # --------------------------------------------------
 COPY . .
 

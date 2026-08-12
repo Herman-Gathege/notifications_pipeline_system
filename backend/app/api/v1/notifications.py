@@ -47,3 +47,26 @@ def get_notification(
         )
 
     return notification
+
+
+@router.post(
+    "/{notification_id}/retry",
+    response_model=NotificationResponse,
+)
+def retry_notification(
+    notification_id: str,
+    service: NotificationService = Depends(
+        get_notification_service
+    ),
+):
+    try:
+        return service.retry_notification(
+            notification_id
+        )
+
+    except ValueError:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Notification not found",
+        )

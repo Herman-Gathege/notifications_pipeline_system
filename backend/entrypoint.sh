@@ -4,7 +4,7 @@ set -e
 
 echo ""
 echo "===================================="
-echo "Starting Notification Platform API"
+echo "Herman El-Maestro created this..."
 echo "===================================="
 
 echo "Waiting for PostgreSQL..."
@@ -30,9 +30,15 @@ done
 
 echo "Redis Ready."
 
-echo "Starting FastAPI..."
+echo "Running database migrations..."
+
+alembic upgrade head
+
+echo "Migrations complete."
+
+echo "Starting FastAPI (production mode)..."
 
 exec uvicorn app.main:app \
     --host 0.0.0.0 \
     --port 8000 \
-    --reload
+    --workers 2
