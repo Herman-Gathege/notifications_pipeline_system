@@ -3,15 +3,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from app.api.v1.router import api_router
+from app.config.settings import settings
 from app.middleware.authentication import AuthenticationMiddleware
 from app.middleware.logging import LoggingMiddleware
 from app.middleware.request_id import RequestIDMiddleware
+
 
 app = FastAPI(
     title="Notification Platform API",
     description="Centralized Notification Platform",
     version="1.0.0",
 )
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,6 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(AuthenticationMiddleware)
@@ -29,7 +33,7 @@ app.add_middleware(AuthenticationMiddleware)
 @app.get("/")
 async def root():
     return {
-        "message": "Notification Platform API",
+        "message": "Herman El-Maestro created this...",
         "status": "running",
     }
 
