@@ -1,0 +1,36 @@
+# ==================================================
+# Production Compose Override
+# ==================================================
+# Usage:
+#   docker compose -p notification-platform \
+#     -f docker-compose.yml \
+#     -f docker-compose.prod.yml \
+#     up --build
+#
+# This file applies production-specific overrides on top
+# of the base docker-compose.yml.
+# The base file is already production-ready; this file
+# adds additional hardening settings.
+# ==================================================
+
+services:
+
+  notification-api:
+    environment:
+      - APP_ENV=production
+      - LOG_LEVEL=WARNING
+
+  notification-worker:
+    environment:
+      - APP_ENV=production
+      - LOG_LEVEL=WARNING
+
+volumes:
+  postgres_data:
+    name: notification-postgres-data
+    driver: local
+
+networks:
+  notification-network:
+    name: notification-network
+    driver: bridge
