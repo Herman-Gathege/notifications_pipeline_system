@@ -59,7 +59,7 @@ export default function EventsPage() {
   const fetchEvents = async () => {
     try {
       setLoading(true)
-      const data = await get("/api/v1/events")
+      const data = await get("/events")
       setEvents(data)
       setError("")
     } catch (err) {

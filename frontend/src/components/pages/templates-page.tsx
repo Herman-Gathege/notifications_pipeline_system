@@ -63,7 +63,7 @@ export default function TemplatesPage() {
   const fetchTemplates = async () => {
     try {
       setLoading(true)
-      const data = await get("/api/v1/templates")
+      const data = await get("/templates")
       setTemplates(data)
       setError("")
     } catch (err) {
@@ -80,7 +80,7 @@ export default function TemplatesPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await post("/api/v1/templates", createData)
+      await post("/templates", createData)
       setCreateData({ name: "", event_type: "", channel: "email", subject: "", body: "" })
       setCreateOpen(false)
       fetchTemplates()
@@ -91,7 +91,7 @@ export default function TemplatesPage() {
 
   const handleUpdate = async (id: string) => {
     try {
-      await patch(`/api/v1/templates/${id}`, editData)
+      await patch(`/templates/${id}`, editData)
       setEditingTemplate(null)
       setEditData({ name: "", event_type: "", channel: "email", subject: "", body: "" })
       fetchTemplates()
@@ -102,7 +102,7 @@ export default function TemplatesPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      await del(`/api/v1/templates/${id}`)
+      await del(`/templates/${id}`)
       fetchTemplates()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete template")

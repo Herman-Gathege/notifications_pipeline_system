@@ -48,7 +48,7 @@ export default function ReportsPage() {
     try {
       setLoading(true)
 
-      const data = await get("/api/v1/reports")
+      const data = await get("/reports")
 
       setReports(data)
       setError("")
@@ -67,7 +67,7 @@ export default function ReportsPage() {
       setError("")
       setLastReport(null)
 
-      await post("/api/v1/reports/generate", {})
+      await post("/reports/generate", {})
 
       await fetchReports()
     } catch (err) {

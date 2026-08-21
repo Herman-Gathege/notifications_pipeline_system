@@ -48,7 +48,7 @@ export default function ProvidersPage() {
   const fetchProviders = async () => {
     try {
       setLoading(true)
-      const data = await get("/api/v1/providers")
+      const data = await get("/providers")
       setProviders(data)
       setError("")
     } catch (err) {
@@ -65,7 +65,7 @@ export default function ProvidersPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await post("/api/v1/providers", createData)
+      await post("/providers", createData)
       setCreateData({ name: "", channel: "email", priority: 1, is_active: true, transport_type: "api" })
       setCreateOpen(false)
       fetchProviders()
@@ -76,7 +76,7 @@ export default function ProvidersPage() {
 
   const handleToggle = async (id: string, currentActive: boolean) => {
     try {
-      await patch(`/api/v1/providers/${id}`, { is_active: !currentActive })
+      await patch(`/providers/${id}`, { is_active: !currentActive })
       fetchProviders()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update provider")
@@ -85,7 +85,7 @@ export default function ProvidersPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      await del(`/api/v1/providers/${id}`)
+      await del(`/providers/${id}`)
       fetchProviders()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete provider")
@@ -96,7 +96,9 @@ export default function ProvidersPage() {
     setTestingId(id)
     setTestResult(null)
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/providers/${id}/test`, {
+      const rawBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8001"
+      const API_BASE = rawBase.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+      const response = await fetch(`${API_BASE}/providers/${id}/test`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ recipient: "test@example.com" }),

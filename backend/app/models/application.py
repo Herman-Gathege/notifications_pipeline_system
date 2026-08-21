@@ -1,7 +1,7 @@
 #backend/app/models/application.py
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -47,6 +47,14 @@ class Application(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+    owner_id: Mapped[str | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
+    owner = relationship("User", back_populates="applications")
 
     api_keys = relationship(
         "APIKey",

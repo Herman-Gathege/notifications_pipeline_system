@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/sidebar"
 import { EllipsisVerticalIcon, CircleUserRoundIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import { setToken } from "@/hooks/use-api"
+
+import { useAuth } from "@/contexts/auth-context"
 
 export function NavUser({
   user,
@@ -33,9 +34,10 @@ export function NavUser({
 }) {
   const navigate = useNavigate()
   const { isMobile } = useSidebar()
+  const { logout } = useAuth()
 
   const handleLogout = () => {
-    setToken(null)
+    logout()
     navigate("/")
   }
 

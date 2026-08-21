@@ -14,7 +14,7 @@ class ApplicationService:
         self.repository = repository
         self.api_key_service = api_key_service
 
-    def create_application(self, name: str) -> Application:
+    def create_application(self, name: str, owner_id: str | None = None) -> Application:
         existing = self.repository.get_by_name(name)
 
         if existing:
@@ -24,6 +24,7 @@ class ApplicationService:
             name=name,
             secret=token_hex(32),
             status=True,
+            owner_id=owner_id,
         )
 
         application = self.repository.create(application)

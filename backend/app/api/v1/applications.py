@@ -1,10 +1,11 @@
-#backend/app/api/v1/applications.py
-# from uuid import UUID
+# backend/app/api/v1/applications.py
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
+from app.api.security import get_current_user, require_admin
+from app.models.user import User
 from app.repositories.application_repository import ApplicationRepository
 from app.schemas.application import (
     ApplicationCreate,
@@ -47,15 +48,24 @@ def serialize_application(application):
     }
 
 
+def assert_owner_or_admin(application, current_user: User):
+    if current_user.role != "admin" and application.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have permission to access this application.",
+        )
+
+
 @router.post("", response_model=ApplicationResponse, status_code=201)
 def create_application(
     payload: ApplicationCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     service = get_service(db)
 
     try:
-        application, api_key = service.create_application(payload.name)
+        application, api_key = service.create_application(payload.name, owner_id=current_user.id)
 
         response = serialize_application(application)
         response["api_key"] = api_key.token
@@ -68,8 +78,14 @@ def create_application(
 @router.get("", response_model=list[ApplicationResponse])
 def list_applications(
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    applications = get_service(db).get_all()
+    service = get_service(db)
+
+    if current_user.role == "admin":
+        applications = service.get_all()
+    else:
+        applications = ApplicationRepository(db).get_by_owner(current_user.id)
 
     return [
         serialize_application(application)
@@ -81,21 +97,36 @@ def list_applications(
 def get_application(
     application_id: str,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    application = get_service(db).get_by_id(application_id)
+    service = get_service(db)
+    application = service.get_by_id(application_id)
 
     if application is None:
         raise HTTPException(404, "Application not found.")
 
+    assert_owner_or_admin(application, current_user)
+
     return serialize_application(application)
+
 
 @router.patch("/{application_id}", response_model=ApplicationResponse)
 def update_application(
     application_id: str,
     payload: ApplicationUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     service = get_service(db)
+    application = service.get_by_id(application_id)
+
+    if application is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Application not found.",
+        )
+
+    assert_owner_or_admin(application, current_user)
 
     application = service.update(
         application_id=application_id,
@@ -115,8 +146,20 @@ def update_application(
 def delete_application(
     application_id: str,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    deleted = get_service(db).delete(application_id)
+    service = get_service(db)
+    application = service.get_by_id(application_id)
+
+    if application is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Application not found.",
+        )
+
+    assert_owner_or_admin(application, current_user)
+
+    deleted = service.delete(application_id)
 
     if not deleted:
         raise HTTPException(

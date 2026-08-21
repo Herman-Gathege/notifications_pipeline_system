@@ -43,10 +43,10 @@ from app.services.template_service import (
 )
 
 from app.repositories.apikey_repository import APIKeyRepository
-
 from app.services.apikey_service import APIKeyService
-
 from app.services.authentication_service import AuthenticationService
+from app.repositories.user_repository import UserRepository
+from app.services.user_service import UserService
 
 from app.repositories.report_repository import ReportRepository
 
@@ -135,8 +135,36 @@ def get_authentication_service(
         APIKeyRepository(db),
     )
 
+    user_service = UserService(
+        UserRepository(db),
+    )
+
     return AuthenticationService(
         api_key_service,
+        user_service,
+    )
+
+
+def get_auth_service(
+    db: Session = Depends(get_db),
+):
+    api_key_service = APIKeyService(
+        APIKeyRepository(db),
+    )
+    user_service = UserService(
+        UserRepository(db),
+    )
+    return AuthenticationService(
+        api_key_service,
+        user_service,
+    )
+
+
+def get_user_service(
+    db: Session = Depends(get_db),
+) -> UserService:
+    return UserService(
+        UserRepository(db),
     )
 
 
