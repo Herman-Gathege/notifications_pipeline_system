@@ -79,7 +79,7 @@ export default function EventsPage() {
     try {
       const payload = JSON.parse(publishData.payload)
       const channels = publishData.channels.split(",").map((c) => c.trim()).filter(Boolean)
-      await post("/api/v1/events", { event_type: publishData.event_type, payload, channels })
+      await post("/events", { event_type: publishData.event_type, payload, channels })
       setPublishResult("Event published successfully!")
       setPublishData({ event_type: EVENT_TYPES[0], payload: '{"customer":"Alice","amount":"KES 5,250"}', channels: "email" })
       setPublishOpen(false)

@@ -42,7 +42,7 @@ export default function NotificationsPage() {
 
   const handleRetry = async (id: string) => {
     try {
-      await post(`/api/v1/notifications/${id}/retry`, {})
+      await post(`/notifications/${id}/retry`, {})
       fetchNotifications()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to retry notification")

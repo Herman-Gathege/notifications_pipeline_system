@@ -23,37 +23,37 @@ const navMain = [
   },
   {
     title: "Applications",
-    url: "/applications",
+    url: "/dashboard/applications",
     icon: <FolderIcon />,
   },
   {
     title: "Providers",
-    url: "/providers",
+    url: "/dashboard/providers",
     icon: <ServerIcon />,
   },
   {
     title: "Templates",
-    url: "/templates",
+    url: "/dashboard/templates",
     icon: <FileTextIcon />,
   },
   {
     title: "Events",
-    url: "/events",
+    url: "/dashboard/events",
     icon: <SendIcon />,
   },
   {
     title: "Notifications",
-    url: "/notifications",
+    url: "/dashboard/notifications",
     icon: <BellIcon />,
   },
   {
     title: "Monitoring",
-    url: "/monitoring",
+    url: "/dashboard/monitoring",
     icon: <BarChart3Icon />,
   },
   {
     title: "Reports",
-    url: "/reports",
+    url: "/dashboard/reports",
     icon: <FileChartColumnIcon />,
   },
 ]
@@ -73,12 +73,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ? {
         name: user.name,
         email: user.email,
-        avatar: "/avatars/shadcn.jpg",
       }
     : {
         name: "Admin",
         email: "admin@notification-platform",
-        avatar: "/avatars/shadcn.jpg",
       }
 
   return (

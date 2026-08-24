@@ -41,8 +41,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardPage />} />
+          <Route index element={<DashboardPage />} />
           <Route path="applications" element={<ApplicationsPage />} />
           <Route path="providers" element={<ProvidersPage />} />
           <Route path="templates" element={<TemplatesPage />} />
