@@ -31,8 +31,11 @@ class Settings(BaseSettings):
     AFRICASTALKING_API_KEY: str = ""
     AFRICASTALKING_SENDER_ID: str | None = None
 
-    CORS_ORIGINS: list[str] = ["http://localhost"]
-
+    CORS_ORIGINS: list[str] = [
+        "http://localhost",
+        "http://172.16.1.36",
+    ]
+    
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
         extra="ignore",
