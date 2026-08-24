@@ -1,4 +1,6 @@
 # backend/app/services/user_service.py
+import bcrypt
+
 from datetime import datetime, timedelta, UTC
 
 from jose import jwt, JWTError
@@ -7,6 +9,14 @@ from app.config.settings import settings
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserCreate, UserUpdate
+
+
+def _hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+
+def _verify_password(password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(password.encode(), hashed_password.encode())
 
 
 class UserService:
@@ -21,12 +31,23 @@ class UserService:
 
         user = User(
             email=data.email,
-            hashed_password=data.password,
+            hashed_password=_hash_password(data.password),
             name=data.name,
             role="user",
         )
 
         return self.repository.create(user)
+
+    def authenticate(self, email: str, password: str) -> User | None:
+        user = self.repository.get_by_email(email)
+
+        if user is None:
+            return None
+
+        if not _verify_password(password, user.hashed_password):
+            return None
+
+        return user
 
     def get_by_email(self, email: str) -> User | None:
         return self.repository.get_by_email(email)

@@ -108,6 +108,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: api
 
     working_dir: /app
 
@@ -162,6 +163,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: worker
 
     working_dir: /app
 

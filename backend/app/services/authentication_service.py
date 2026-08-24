@@ -55,15 +55,12 @@ class AuthenticationService:
         )
 
     def login_user(self, email: str, password: str):
-        user = self.user_service.get_by_email(email)
+        user = self.user_service.authenticate(email, password)
 
         if user is None:
             return None
 
         if not user.is_active:
-            return None
-
-        if user.hashed_password != password:
             return None
 
         token = self.user_service.create_access_token(user)

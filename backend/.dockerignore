@@ -7,3 +7,12 @@ venv/
 .env
 tests/
 test_*.py
+docs/
+scripts/
+frontend/
+docker-compose*.yml
+Makefile
+.kilo/
+.vscode/
+*.md
+.env.example

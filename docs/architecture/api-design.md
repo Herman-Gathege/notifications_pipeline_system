@@ -2,10 +2,11 @@
 
 ## Overview
 
-The Notification Platform exposes a RESTful HTTP API that allows external systems to:
+The Notification Platform exposes a RESTful HTTP API that allows:
 
-- Register applications
-- Authenticate using API Keys
+- Human operators to authenticate and manage the platform
+- External systems to register applications
+- Client applications to authenticate using API Keys
 - Submit notifications
 - Manage templates
 - Track delivery status
@@ -73,21 +74,121 @@ Content-Type: application/json
 
 # Authentication
 
-Client applications authenticate using an API Key.
+The platform supports two distinct authentication methods.
 
-Request Header
+## Human User Authentication (JWT)
 
-```
-Authorization: Bearer <API_KEY>
-```
+Human operators authenticate with email and password.
 
-Example
+Request
 
 ```
-Authorization: Bearer 67be61966c7f851ad0320...
+POST /api/v1/auth/login
 ```
 
-Currently, authentication middleware is present in the project. Future notification endpoints will require valid API keys before processing requests.
+Request Body
+
+```json
+{
+  "email": "admin@example.com",
+  "password": "secure-password"
+}
+```
+
+Response
+
+```json
+{
+  "access_token": "eyJ...",
+  "token_type": "bearer",
+  "user": {
+    "id": "uuid",
+    "email": "admin@example.com",
+    "name": "Admin",
+    "role": "admin"
+  }
+}
+```
+
+Usage
+
+```
+Authorization: Bearer eyJ...
+```
+
+## Machine / Application Authentication (API Key)
+
+Client applications authenticate with an API Key and Secret.
+
+Request
+
+```
+POST /api/v1/auth/token
+```
+
+Request Body
+
+```json
+{
+  "api_key": "generated_key",
+  "secret": "generated_secret"
+}
+```
+
+Response
+
+```json
+{
+  "access_token": "eyJ...",
+  "token_type": "bearer"
+}
+```
+
+Usage
+
+```
+Authorization: Bearer eyJ...
+```
+
+---
+
+# Token Types
+
+The platform uses typed JWTs to distinguish between human and machine identities.
+
+## User JWT Claims
+
+```json
+{
+  "sub": "user-uuid",
+  "type": "user",
+  "role": "admin",
+  "email": "admin@example.com",
+  "exp": 1234567890
+}
+```
+
+## Application JWT Claims
+
+```json
+{
+  "sub": "application-uuid",
+  "app": "Payment Service",
+  "type": "application",
+  "exp": 1234567890
+}
+```
+
+Security Note: The two token types are validated by separate FastAPI dependencies. A user JWT cannot be used to access machine-only endpoints, and an application JWT cannot be used to access user-only endpoints.
+
+---
+
+# Authorization / RBAC
+
+| Role | Permissions |
+|------|-------------|
+| `admin` | Full access to all resources. Can manage users and view all applications. |
+| `user` | Can manage own applications. Cannot access user management endpoints. |
 
 ---
 
@@ -96,8 +197,8 @@ Currently, authentication middleware is present in the project. Future notificat
 Current Resources
 
 ```
+Users
 Applications
-
 API Keys
 ```
 
@@ -105,16 +206,241 @@ Future Resources
 
 ```
 Notifications
-
 Templates
-
 Providers
-
 Analytics
-
 Health
-
 Audit Logs
+```
+
+---
+
+# Users API
+
+## Register User
+
+```
+POST /api/v1/auth/register
+```
+
+Request
+
+```json
+{
+  "email": "admin@example.com",
+  "password": "secure-password",
+  "name": "Admin User"
+}
+```
+
+Successful Response
+
+```json
+{
+  "access_token": "eyJ...",
+  "token_type": "bearer",
+  "user": {
+    "id": "uuid",
+    "email": "admin@example.com",
+    "name": "Admin User",
+    "role": "user"
+  }
+}
+```
+
+Status Code
+
+```
+201 Created
+```
+
+Notes
+
+- Newly registered users default to role `user`.
+- Registration cannot assign the `admin` role.
+
+---
+
+## Login
+
+```
+POST /api/v1/auth/login
+```
+
+Request
+
+```json
+{
+  "email": "admin@example.com",
+  "password": "secure-password"
+}
+```
+
+Response
+
+```json
+{
+  "access_token": "eyJ...",
+  "token_type": "bearer",
+  "user": {
+    "id": "uuid",
+    "email": "admin@example.com",
+    "name": "Admin User",
+    "role": "admin"
+  }
+}
+```
+
+Status Code
+
+```
+200 OK
+```
+
+---
+
+## Get Current User
+
+```
+GET /api/v1/users/me
+```
+
+Response
+
+```json
+{
+  "id": "uuid",
+  "email": "admin@example.com",
+  "name": "Admin User",
+  "role": "admin",
+  "is_active": true,
+  "created_at": "...",
+  "updated_at": "..."
+}
+```
+
+Status Code
+
+```
+200 OK
+```
+
+---
+
+## List Users (Admin Only)
+
+```
+GET /api/v1/users
+```
+
+Response
+
+```json
+[
+  {
+    "id": "uuid",
+    "email": "admin@example.com",
+    "name": "Admin User",
+    "role": "admin",
+    "is_active": true
+  }
+]
+```
+
+Status Code
+
+```
+200 OK
+```
+
+---
+
+## Get User (Admin Only)
+
+```
+GET /api/v1/users/{user_id}
+```
+
+Response
+
+```json
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "name": "User Name",
+  "role": "user",
+  "is_active": true
+}
+```
+
+Status Codes
+
+```
+200 OK
+
+404 Not Found
+```
+
+---
+
+## Update User (Admin Only)
+
+```
+PATCH /api/v1/users/{user_id}
+```
+
+Request
+
+```json
+{
+  "name": "New Name",
+  "role": "admin",
+  "is_active": false
+}
+```
+
+Response
+
+```json
+{
+  "id": "uuid",
+  "email": "user@example.com",
+  "name": "New Name",
+  "role": "admin",
+  "is_active": false
+}
+```
+
+Status Codes
+
+```
+200 OK
+
+404 Not Found
+```
+
+---
+
+## Delete User (Admin Only)
+
+```
+DELETE /api/v1/users/{user_id}
+```
+
+Response
+
+```
+204 No Content
+```
+
+Status Codes
+
+```
+204 No Content
+
+400 Bad Request (cannot delete self)
+
+404 Not Found
 ```
 
 ---
@@ -125,19 +451,27 @@ Purpose
 
 Registers client systems that will use the notification platform.
 
+Applications are now owned by human users and require user authentication.
+
 ---
 
 ## Create Application
 
 ```
-POST /applications
+POST /api/v1/applications
+```
+
+Headers
+
+```
+Authorization: Bearer <user_jwt>
 ```
 
 Request
 
 ```json
 {
-    "name":"Payment Service"
+  "name": "Payment Service"
 }
 ```
 
@@ -145,13 +479,14 @@ Successful Response
 
 ```json
 {
-    "id":"uuid",
-    "name":"Payment Service",
-    "api_key":"generated_key",
-    "secret":"generated_secret",
-    "status":"active",
-    "created_at":"...",
-    "updated_at":"..."
+  "id": "uuid",
+  "name": "Payment Service",
+  "api_key": "generated_key",
+  "secret": "generated_secret",
+  "status": "active",
+  "owner_id": "user-uuid",
+  "created_at": "...",
+  "updated_at": "..."
 }
 ```
 
@@ -161,25 +496,52 @@ Status Code
 201 Created
 ```
 
+Notes
+
+- `owner_id` is set automatically from the authenticated user.
+- The API key and secret are generated automatically.
+
 ---
 
 ## List Applications
 
 ```
-GET /applications
+GET /api/v1/applications
 ```
 
-Response
+Headers
+
+```
+Authorization: Bearer <user_jwt>
+```
+
+Response (Admin)
 
 ```json
 [
-    {
-        "id":"...",
-        "name":"Payment Service",
-        "api_key":"...",
-        "secret":"...",
-        "status":"active"
-    }
+  {
+    "id": "uuid",
+    "name": "Payment Service",
+    "api_key": "...",
+    "secret": "...",
+    "status": "active",
+    "owner_id": "user-uuid"
+  }
+]
+```
+
+Response (Normal User — own applications only)
+
+```json
+[
+  {
+    "id": "uuid",
+    "name": "My App",
+    "api_key": "...",
+    "secret": "...",
+    "status": "active",
+    "owner_id": "user-uuid"
+  }
 ]
 ```
 
@@ -194,18 +556,25 @@ Status Code
 ## Get Application
 
 ```
-GET /applications/{application_id}
+GET /api/v1/applications/{application_id}
+```
+
+Headers
+
+```
+Authorization: Bearer <user_jwt>
 ```
 
 Response
 
 ```json
 {
-    "id":"...",
-    "name":"Payment Service",
-    "api_key":"...",
-    "secret":"...",
-    "status":"active"
+  "id": "uuid",
+  "name": "Payment Service",
+  "api_key": "...",
+  "secret": "...",
+  "status": "active",
+  "owner_id": "user-uuid"
 }
 ```
 
@@ -215,6 +584,8 @@ Status Codes
 200 OK
 
 404 Not Found
+
+403 Forbidden (not owner and not admin)
 ```
 
 ---
@@ -222,14 +593,20 @@ Status Codes
 ## Update Application
 
 ```
-PATCH /applications/{application_id}
+PATCH /api/v1/applications/{application_id}
 ```
 
-Example
+Headers
+
+```
+Authorization: Bearer <user_jwt>
+```
+
+Request
 
 ```json
 {
-    "name":"Payment Service Updated"
+  "name": "Payment Service Updated"
 }
 ```
 
@@ -237,11 +614,12 @@ Response
 
 ```json
 {
-    "id":"...",
-    "name":"Payment Service Updated",
-    "api_key":"...",
-    "secret":"...",
-    "status":"active"
+  "id": "uuid",
+  "name": "Payment Service Updated",
+  "api_key": "...",
+  "secret": "...",
+  "status": "active",
+  "owner_id": "user-uuid"
 }
 ```
 
@@ -251,6 +629,8 @@ Status Codes
 200 OK
 
 404 Not Found
+
+403 Forbidden (not owner and not admin)
 ```
 
 ---
@@ -258,13 +638,29 @@ Status Codes
 ## Delete Application
 
 ```
-DELETE /applications/{application_id}
+DELETE /api/v1/applications/{application_id}
+```
+
+Headers
+
+```
+Authorization: Bearer <user_jwt>
 ```
 
 Response
 
 ```
 204 No Content
+```
+
+Status Codes
+
+```
+204 No Content
+
+404 Not Found
+
+403 Forbidden (not owner and not admin)
 ```
 
 ---
@@ -329,10 +725,10 @@ Example
 
 ```json
 {
-    "channel":"email",
-    "recipient":"user@example.com",
-    "subject":"Welcome",
-    "message":"Welcome to our platform."
+  "channel": "email",
+  "recipient": "user@example.com",
+  "subject": "Welcome",
+  "message": "Welcome to our platform."
 }
 ```
 
@@ -340,8 +736,8 @@ Response
 
 ```json
 {
-    "id":"uuid",
-    "status":"queued"
+  "id": "uuid",
+  "status": "queued"
 }
 ```
 
@@ -359,9 +755,9 @@ Example
 
 ```json
 {
-    "recipient":"user@example.com",
-    "message":"Meeting Reminder",
-    "scheduled_at":"2026-08-01T08:00:00Z"
+  "recipient": "user@example.com",
+  "message": "Meeting Reminder",
+  "scheduled_at": "2026-08-01T08:00:00Z"
 }
 ```
 
@@ -379,13 +775,13 @@ Example
 
 ```json
 {
-    "channel":"sms",
-    "recipients":[
-        "...",
-        "...",
-        "..."
-    ],
-    "message":"System Maintenance"
+  "channel": "sms",
+  "recipients": [
+    "...",
+    "...",
+    "..."
+  ],
+  "message": "System Maintenance"
 }
 ```
 
@@ -409,9 +805,9 @@ Example Template
 
 ```json
 {
-    "name":"Password Reset",
-    "subject":"Reset Password",
-    "body":"Hello {{name}}..."
+  "name": "Password Reset",
+  "subject": "Reset Password",
+  "body": "Hello {{name}}..."
 }
 ```
 
@@ -453,10 +849,10 @@ Example Response
 
 ```json
 {
-    "total_notifications":12000,
-    "delivered":11800,
-    "failed":200,
-    "success_rate":98.3
+  "total_notifications": 12000,
+  "delivered": 11800,
+  "failed": 200,
+  "success_rate": 98.3
 }
 ```
 
@@ -474,9 +870,9 @@ Example
 
 ```json
 {
-    "status":"healthy",
-    "service":"notification-platform",
-    "version":"1.0.0"
+  "status": "healthy",
+  "service": "notification-platform",
+  "version": "1.0.0"
 }
 ```
 
@@ -492,8 +888,8 @@ Example
 
 ```json
 {
-    "message":"Notification Platform API",
-    "status":"running"
+  "message": "Notification Platform API",
+  "status": "running"
 }
 ```
 
@@ -503,16 +899,16 @@ Example
 
 | Code | Meaning |
 |------|----------|
-|200|Success|
-|201|Created|
-|204|Deleted Successfully|
-|400|Bad Request|
-|401|Unauthorized|
-|403|Forbidden|
-|404|Not Found|
-|409|Conflict|
-|422|Validation Error|
-|500|Internal Server Error|
+| 200 | Success |
+| 201 | Created |
+| 204 | Deleted Successfully |
+| 400 | Bad Request |
+| 401 | Unauthorized |
+| 403 | Forbidden |
+| 404 | Not Found |
+| 409 | Conflict |
+| 422 | Validation Error |
+| 500 | Internal Server Error |
 
 ---
 
@@ -522,7 +918,7 @@ Example
 
 ```json
 {
-    "detail":"Application not found."
+  "detail": "Application not found."
 }
 ```
 
@@ -530,13 +926,13 @@ Validation Example
 
 ```json
 {
-    "detail":[
-        {
-            "loc":["body","name"],
-            "msg":"Field required",
-            "type":"missing"
-        }
-    ]
+  "detail": [
+    {
+      "loc": ["body", "name"],
+      "msg": "Field required",
+      "type": "missing"
+    }
+  ]
 }
 ```
 
@@ -547,6 +943,8 @@ Validation Example
 Resources
 
 ```
+users
+
 applications
 
 notifications
@@ -586,10 +984,10 @@ Response
 
 ```json
 {
-    "items":[...],
-    "page":1,
-    "page_size":50,
-    "total":420
+  "items": [...],
+  "page": 1,
+  "page_size": 50,
+  "total": 420
 }
 ```
 
@@ -665,18 +1063,23 @@ Response
 
 | Feature | Status |
 |----------|--------|
-|Health Endpoint|✅|
-|Root Endpoint|✅|
-|Application CRUD|✅|
-|API Key Generation|✅|
-|Application Secrets|✅|
-|Notification API|⏳|
-|Templates API|⏳|
-|Provider API|⏳|
-|Analytics API|⏳|
+| Health Endpoint | ✅ |
+| Root Endpoint | ✅ |
+| User Registration | ✅ |
+| User Login | ✅ |
+| User Profile | ✅ |
+| User Management (Admin) | ✅ |
+| Application CRUD | ✅ |
+| API Key Generation | ✅ |
+| Application Secrets | ✅ |
+| Application Ownership | ✅ |
+| Notification API | ⏳ |
+| Templates API | ⏳ |
+| Provider API | ⏳ |
+| Analytics API | ⏳ |
 
 ---
 
 # Summary
 
-The Notification Platform API follows RESTful design principles with versioned endpoints, JSON payloads, and a clear separation between resources. The current implementation provides a complete CRUD workflow for application registration and credential generation, while the API structure is designed to grow naturally into a full notification platform supporting multiple channels, providers, templates, analytics, scheduling, and high-volume delivery.
+The Notification Platform API follows RESTful design principles with versioned endpoints, JSON payloads, and a clear separation between resources. The current implementation provides complete human authentication, role-based access control, and application ownership management, while the API structure is designed to grow naturally into a full notification platform supporting multiple channels, providers, templates, analytics, scheduling, and high-volume delivery.

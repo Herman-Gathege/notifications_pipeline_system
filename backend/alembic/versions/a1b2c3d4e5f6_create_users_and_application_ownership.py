@@ -7,6 +7,7 @@ Create Date: 2026-08-21 10:30:00.000000
 
 from typing import Sequence, Union
 
+import bcrypt
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import text
@@ -39,6 +40,20 @@ def upgrade() -> None:
 
     conn = op.get_bind()
     default_admin_id = conn.execute(text("SELECT gen_random_uuid()::text")).scalar_one()
+
+    import os
+
+    admin_email = os.environ.get("INITIAL_ADMIN_EMAIL")
+    admin_password = os.environ.get("INITIAL_ADMIN_PASSWORD")
+
+    if not admin_email or not admin_password:
+        raise RuntimeError(
+            "INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must be set "
+            "to bootstrap the initial admin user."
+        )
+
+    hashed_password = bcrypt.hashpw(admin_password.encode(), bcrypt.gensalt()).decode()
+
     conn.execute(
         text(
             "INSERT INTO users (id, email, hashed_password, name, role, is_active, created_at, updated_at) "
@@ -46,8 +61,8 @@ def upgrade() -> None:
         ),
         {
             "id": default_admin_id,
-            "email": "admin@notification-platform",
-            "password": "admin123",
+            "email": admin_email,
+            "password": hashed_password,
             "name": "Admin",
             "role": "admin",
             "active": True,

@@ -6,6 +6,7 @@ The Notification Platform uses PostgreSQL as its primary relational database.
 
 The database is responsible for storing:
 
+- Users (human operators)
 - Registered client applications
 - API Keys
 - Notifications
@@ -15,7 +16,7 @@ The database is responsible for storing:
 - User preferences
 - Provider configurations
 
-The current implementation contains the foundation tables required to identify applications and securely authenticate requests. Additional tables will be introduced as notification functionality expands.
+The current implementation contains the foundation tables required to identify applications, authenticate machine clients, and manage human users. Additional tables will be introduced as notification functionality expands.
 
 ---
 
@@ -24,6 +25,7 @@ The current implementation contains the foundation tables required to identify a
 Current Tables
 
 ```
+users
 applications
 api_keys
 ```
@@ -48,46 +50,105 @@ audit_logs
 Current
 
 ```
+Users
+  │
+  │ 1
+  │
+  ▼
 Applications
-      │
-      │ 1
-      │
-      │
-      ▼
+  │
+  │ 1
+  │
+  ▼
 API Keys
-      *
+  *
 ```
 
 Future
 
 ```
+Users
+  │
+  │
+  ▼
 Applications
-      │
-      │
-      ▼
+  │
+  │
+  ▼
 Notifications
-      │
-      ├────────► Delivery Attempts
-      │
-      ├────────► Audit Logs
-      │
-      └────────► Templates
+  │
+  ├────────► Delivery Attempts
+  │
+  ├────────► Audit Logs
+  │
+  └────────► Templates
 
 Applications
-      │
-      ▼
+  │
+  ▼
 API Keys
 
 Notifications
-      │
-      ▼
+  │
+  ▼
 Providers
 
 Providers
-      │
-      ▼
+  │
+  ▼
 Channels
 ```
+
+---
+
+# Table: users
+
+Purpose
+
+Represents a human operator who logs into the Notification Platform.
+
+Examples:
+
+- Platform administrator
+- Operations staff
+- Developer managing applications
+
+Each user has a role (`admin` or `user`) and owns zero or more applications.
+
+---
+
+## Columns
+
+| Column | Type | Description |
+|---------|------|-------------|
+| id | VARCHAR(36) | Primary Key (UUID) |
+| email | VARCHAR(255) | Unique, indexed |
+| hashed_password | VARCHAR(255) | Password hash |
+| name | VARCHAR(150) | Display name |
+| role | VARCHAR(20) | `admin` or `user` |
+| is_active | BOOLEAN | Active / Inactive |
+| created_at | TIMESTAMPTZ | Creation time |
+| updated_at | TIMESTAMPTZ | Last update |
+
+---
+
+## Relationships
+
+One User
+
+↓
+
+Many Applications
+
+---
+
+## Notes
+
+- Email is unique and indexed for fast lookups during login.
+- Passwords are stored as hashed strings.
+- Default role is `user`.
+- Inactive users cannot authenticate or use protected endpoints.
+- The first user is seeded by the database migration with role `admin`.
 
 ---
 
@@ -105,7 +166,7 @@ Examples:
 - E-Commerce
 - Mobile App
 
-Each application receives credentials used to authenticate future requests.
+Each application receives credentials used to authenticate future machine requests.
 
 ---
 
@@ -113,16 +174,23 @@ Each application receives credentials used to authenticate future requests.
 
 | Column | Type | Description |
 |---------|------|-------------|
-| id | UUID | Primary Key |
-| name | VARCHAR | Application name |
-| secret | VARCHAR | Secret used internally |
+| id | VARCHAR(36) | Primary Key (UUID) |
+| name | VARCHAR(150) | Application name (unique) |
+| secret | VARCHAR(255) | Secret used for machine auth |
 | status | BOOLEAN | Active / Inactive |
-| created_at | TIMESTAMP | Creation time |
-| updated_at | TIMESTAMP | Last update |
+| owner_id | VARCHAR(36) | Foreign Key to `users.id` |
+| created_at | TIMESTAMPTZ | Creation time |
+| updated_at | TIMESTAMPTZ | Last update |
 
 ---
 
 ## Relationships
+
+Many Applications
+
+↓
+
+One User (owner)
 
 One Application
 
@@ -140,11 +208,11 @@ Many Notifications
 
 ---
 
-## Example
+## Notes
 
-| id | name |
-|----|------|
-| uuid | Payment Service |
+- `owner_id` is assigned automatically from the authenticated human user who creates the application.
+- Deleting a user sets `owner_id` to NULL on their applications (`ON DELETE SET NULL`).
+- Application secrets are stored as plaintext strings. This is intentional for the current implementation but should be reviewed for production hardening.
 
 ---
 
@@ -184,40 +252,26 @@ One Application
 
 ## Notes
 
-Each key belongs to exactly one application.
-
-An application may own multiple API Keys.
-
-Reasons include:
-
-- Key rotation
-- Development
-- Production
-- Testing
-- Emergency replacement
+- Each key belongs to exactly one application.
+- An application may own multiple API Keys.
+- Reasons include: key rotation, development, production, testing, emergency replacement.
 
 ---
 
-# Current Relationship
+# Current Relationships
 
 ```
+User
+ │
+ │ 1
+ │
+ ▼
 Application
-
-id
-name
-secret
-
-        │
-
-        │
-
-        ▼
-
+ │
+ │ 1
+ │
+ ▼
 API Key
-
-application_id
-
-token
 ```
 
 ---
@@ -269,7 +323,7 @@ Useful for debugging.
 
 ---
 
-Columns
+## Columns
 
 - id
 - notification_id
@@ -279,7 +333,9 @@ Columns
 - duration
 - created_at
 
-Relationship
+---
+
+## Relationship
 
 ```
 Notification
@@ -461,9 +517,15 @@ Indexes should exist on frequently queried columns.
 Current
 
 ```
+users.id
+
+users.email
+
 applications.id
 
 applications.name
+
+applications.owner_id
 
 api_keys.token
 
@@ -496,6 +558,7 @@ Current constraints
 - Foreign Keys
 - Unique application names
 - Unique API tokens
+- Unique user emails
 
 Future constraints
 
@@ -509,6 +572,8 @@ Future constraints
 
 # Cascade Rules
 
+Deleting a user should not delete applications. Instead, `owner_id` is set to NULL.
+
 Deleting an application should remove:
 
 - API Keys
@@ -520,15 +585,15 @@ This avoids orphaned records.
 Example
 
 ```
-Application
+User
 
 ↓
 
-Notifications
+Applications (owner_id set to NULL on user delete)
 
 ↓
 
-Delivery Attempts
+API Keys / Notifications / Delivery Attempts
 ```
 
 ---
@@ -540,6 +605,8 @@ Each table has a corresponding repository responsible for database interaction.
 Current repositories
 
 ```
+UserRepository
+
 ApplicationRepository
 
 APIKeyRepository
@@ -570,6 +637,8 @@ Business rules belong inside the Service layer.
 Current
 
 ```
+UserService
+
 ApplicationService
 
 APIKeyService
@@ -620,6 +689,7 @@ Future optimizations may include:
 
 | Component | Status |
 |-----------|--------|
+| Users | ✅ Complete |
 | Applications | ✅ Complete |
 | API Keys | ✅ Complete |
 | Notifications | ⏳ Planned |
@@ -633,4 +703,4 @@ Future optimizations may include:
 
 # Summary
 
-The Notification Platform database is intentionally modular. The current implementation provides a secure foundation for application registration and API key management, while the schema is designed to evolve cleanly as notification delivery, provider integrations, templates, analytics, and auditing are introduced in future development phases.
+The Notification Platform database is intentionally modular. The current implementation provides a secure foundation for application registration, API key management, and human user authentication, while the schema is designed to evolve cleanly as notification delivery, provider integrations, templates, analytics, and auditing are introduced in future development phases.
