@@ -17,6 +17,7 @@ from app.services.template_service import TemplateService
 from app.workers.worker import celery_app
 
 import time
+import logging
 
 from app.repositories.notification_repository import NotificationRepository
 from app.services.notification_service import NotificationService
@@ -24,6 +25,8 @@ from app.monitoring.metrics import (
     notifications_processed_total,
     notification_processing_seconds,
 )
+
+logger = logging.getLogger("fikatu.worker")
 
 @celery_app.task(name="app.workers.notification_worker.process_notification")
 def process_notification(notification_id: str):
@@ -54,9 +57,7 @@ def process_notification(notification_id: str):
 
     try:
 
-        print("=" * 60)
-        print(f"Processing notification {notification_id}")
-        print("=" * 60)
+        logger.info("Processing notification %s", notification_id)
 
         # -------------------------------------------------
         # Load Notification
@@ -69,7 +70,7 @@ def process_notification(notification_id: str):
         )
 
         if notification is None:
-            print("Notification not found.")
+            logger.warning("Notification not found: %s", notification_id)
 
             return {
                 "status": "failed",
@@ -211,11 +212,7 @@ def process_notification(notification_id: str):
             "body": rendered["body"],
         }
 
-        print()
-        print("Delivery Payload")
-        print("-" * 60)
-        print(delivery_payload)
-        print("-" * 60)
+        logger.info("Delivery payload: %s", delivery_payload)
 
         # -------------------------------------------------
         # Simulate Successful Delivery
@@ -260,7 +257,7 @@ def process_notification(notification_id: str):
 
         db.commit()
 
-        print(result)
+        logger.info("Result: %s", result)
 
         return {
             "notification_id": notification.id,

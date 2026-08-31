@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -19,6 +19,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
 
   if (token) {
     navigate("/dashboard")
@@ -29,6 +30,17 @@ export default function RegisterPage() {
     e.preventDefault()
     setError("")
     setLoading(true)
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.")
+      setLoading(false)
+      return
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.")
+      setLoading(false)
+      return
+    }
 
     try {
       const response = await fetch(`${AUTH_BASE}/auth/register`, {
@@ -55,9 +67,12 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/50">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Create Account</CardTitle>
-          <CardDescription>Register to manage notifications</CardDescription>
+        <CardHeader className="text-center">
+          <div className="mb-4 flex justify-center">
+            <img src="/FikaTu-logo.png" alt="FikaTu" className="h-16 w-auto" />
+          </div>
+          <CardTitle>FikaTu</CardTitle>
+          <CardDescription>Create your account to manage notifications</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -77,7 +92,7 @@ export default function RegisterPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="john@example.com"
+                placeholder="john@fikatu.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -88,9 +103,20 @@ export default function RegisterPage() {
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="At least 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Re-type your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
             </div>
@@ -102,6 +128,12 @@ export default function RegisterPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Creating account..." : "Register"}
             </Button>
+            <div className="text-center text-sm">
+              Already have an account?{" "}
+              <Link to="/" className="text-primary hover:underline">
+                Sign in
+              </Link>
+            </div>
           </form>
         </CardContent>
       </Card>

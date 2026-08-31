@@ -4,7 +4,7 @@ import time
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-logger = logging.getLogger("notification-platform")
+logger = logging.getLogger("fikatu")
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):

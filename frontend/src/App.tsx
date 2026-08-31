@@ -12,6 +12,7 @@ import EventsPage from "@/components/pages/events-page";
 import NotificationsPage from "@/components/pages/notifications-page";
 import MonitoringPage from "@/components/pages/monitoring-page";
 import ReportsPage from "@/components/pages/reports-page";
+import UsersPage from "@/components/pages/users-page";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token, loading } = useAuth()
@@ -49,6 +50,7 @@ function App() {
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="monitoring" element={<MonitoringPage />} />
           <Route path="reports" element={<ReportsPage />} />
+          <Route path="users" element={<UsersPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

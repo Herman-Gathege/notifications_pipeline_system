@@ -36,6 +36,7 @@ def list_notifications(
 @router.get(
     "/{notification_id}",
     response_model=NotificationResponse,
+    dependencies=[Depends(get_current_user)],
 )
 def get_notification(
     notification_id: str,
@@ -55,6 +56,7 @@ def get_notification(
 @router.post(
     "/{notification_id}/retry",
     response_model=NotificationResponse,
+    dependencies=[Depends(get_current_user)],
 )
 def retry_notification(
     notification_id: str,

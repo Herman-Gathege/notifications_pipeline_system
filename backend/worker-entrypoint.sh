@@ -2,12 +2,12 @@
 
 set -e
 
-echo ""
-echo "===================================="
-echo "Starting Notification Worker"
-echo "===================================="
+echo "🚀 ---------------------------------- 🚀"
+echo "  🔥 FikaTu — Notification Worker 🔥  "
+echo "🚀 ---------------------------------- 🚀"
 
-echo "Waiting for PostgreSQL..."
+echo "Waiting for PostgreSQL to be ready..."
+
 
 until pg_isready \
     -h "$POSTGRES_HOST" \

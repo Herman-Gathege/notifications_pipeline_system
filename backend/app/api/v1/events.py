@@ -1,13 +1,12 @@
 # backend/app/api/v1/events.py
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
-from app.api.security import get_current_application, get_current_user
+from app.api.security import get_current_user
 from jose import jwt, JWTError
 
 from app.database.session import get_db
 from app.repositories.event_repository import EventRepository
 from app.repositories.notification_repository import NotificationRepository
-from app.repositories.application_repository import ApplicationRepository
 from app.repositories.application_repository import ApplicationRepository
 from app.schemas.event import EventCreate, EventResponse
 from app.services.event_service import EventService
@@ -68,7 +67,13 @@ def create_event(
         
         application = ApplicationRepository(db).get_by_id(payload.application_id)
         
-        if application is None or application.owner_id != token_payload["sub"]:
+        if application is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Application not found.",
+            )
+        
+        if token_payload.get("role") != "admin" and application.owner_id != token_payload["sub"]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have permission to publish events for this application.",
@@ -105,6 +110,8 @@ def list_events(
 def get_event(
     event_id: str,
     service: EventService = Depends(get_event_service),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     event = service.get_event(event_id)
 
@@ -113,5 +120,13 @@ def get_event(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Event not found",
         )
+
+    if current_user.role != "admin":
+        application = ApplicationRepository(db).get_by_id(event.application_id)
+        if application is None or application.owner_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to view this event.",
+            )
 
     return event

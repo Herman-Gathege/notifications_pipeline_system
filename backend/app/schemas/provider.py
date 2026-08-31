@@ -4,7 +4,7 @@ from uuid import UUID
 
 
     
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict
 
 
 class ProviderBase(BaseModel):
@@ -56,8 +56,7 @@ class ProviderResponse(ProviderBase):
     model_config = ConfigDict(from_attributes=True)
 
 class ProviderTestRequest(BaseModel):
-    # provider: str
-    recipient: EmailStr
+    recipient: str
 
 
 class ProviderTestResponse(BaseModel):
@@ -66,7 +65,3 @@ class ProviderTestResponse(BaseModel):
     provider_message_id: str | None
     status_code: int | None
     error: str | None
-
-
-class ProviderTestRequest(BaseModel):
-    recipient: EmailStr

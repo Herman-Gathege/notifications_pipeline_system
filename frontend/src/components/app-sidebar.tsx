@@ -12,10 +12,21 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, FolderIcon, ServerIcon, FileTextIcon, SendIcon, BellIcon, BarChart3Icon, FileChartColumnIcon, LogOutIcon } from "lucide-react"
+import {
+  LayoutDashboardIcon,
+  FolderIcon,
+  ServerIcon,
+  FileTextIcon,
+  SendIcon,
+  BellIcon,
+  BarChart3Icon,
+  FileChartColumnIcon,
+  LogOutIcon,
+  UsersIcon,
+} from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 
-const navMain = [
+const baseNavMain = [
   {
     title: "Dashboard",
     url: "/dashboard",
@@ -69,6 +80,15 @@ const navSecondary = [
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
 
+  const navMain = [...baseNavMain]
+  if (user?.role === "admin") {
+    navMain.push({
+      title: "Users",
+      url: "/dashboard/users",
+      icon: <UsersIcon />,
+    })
+  }
+
   const currentUser = user
     ? {
         name: user.name,
@@ -76,7 +96,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       }
     : {
         name: "Admin",
-        email: "admin@notification-platform",
+        email: "admin@fikatu.com",
       }
 
   return (
@@ -88,7 +108,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:p-1.5!"
               render={<a href="/dashboard" />}
             >
-              <span className="text-base font-semibold">Notify Platform</span>
+              <img src="/FikaTu-logo.png" alt="FikaTu" className="h-8 w-auto" />
+              <span className="text-base font-semibold">FikaTu</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

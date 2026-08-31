@@ -17,8 +17,8 @@ class ApplicationUpdate(BaseModel):
 class ApplicationResponse(BaseModel):
     id: UUID
     name: str
-    api_key: str
-    secret: str
+    api_key: str | None = None
+    secret: str | None = None
     status: str
     created_at: datetime
     updated_at: datetime

@@ -10,8 +10,8 @@ from app.middleware.request_id import RequestIDMiddleware
 
 
 app = FastAPI(
-    title="Notification Platform API",
-    description="Centralized Notification Platform",
+    title="FikaTu API",
+    description="FikaTu — Centralized Notification Platform",
     version="1.0.0",
 )
 
@@ -33,16 +33,17 @@ app.add_middleware(AuthenticationMiddleware)
 @app.get("/")
 async def root():
     return {
-        "message": "Herman El-Maestro created this...",
+        "message": "FikaTu — Centralized Notification Platform",
         "status": "running",
     }
 
 
 @app.get("/health")
+@app.get("/api/v1/health")
 async def health():
     return {
         "status": "healthy",
-        "service": "notification-platform",
+        "service": "fikatu",
         "version": "1.0.0",
     }
 

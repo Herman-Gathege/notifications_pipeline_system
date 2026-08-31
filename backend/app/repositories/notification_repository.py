@@ -1,6 +1,8 @@
 # backend/app/repositories/notification_repository.py
 from __future__ import annotations
 
+from datetime import datetime, timedelta, UTC
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -75,8 +77,7 @@ class NotificationRepository:
             .delete(synchronize_session=False)
         )
 
-    def update(self, notification: Notification):
-        self.db.add(notification)
+    def update(self, notification: Notification) -> Notification:
         self.db.commit()
         self.db.refresh(notification)
         return notification

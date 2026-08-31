@@ -12,6 +12,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         public_paths = (
             "/",
             "/health",
+            "/api/v1/health",
             "/metrics",
             "/docs",
             "/redoc",

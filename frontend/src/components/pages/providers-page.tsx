@@ -99,7 +99,7 @@ export default function ProvidersPage() {
       const token = localStorage.getItem("auth_token")
       const rawBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8001"
       const API_BASE = rawBase.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
-      const response = await fetch(`${API_BASE}/providers/${id}/test`, {
+      const response = await fetch(`${API_BASE}/api/v1/providers/${id}/test`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

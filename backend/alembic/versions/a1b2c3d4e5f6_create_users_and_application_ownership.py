@@ -39,35 +39,44 @@ def upgrade() -> None:
     )
 
     conn = op.get_bind()
-    default_admin_id = conn.execute(text("SELECT gen_random_uuid()::text")).scalar_one()
 
     import os
 
     admin_email = os.environ.get("INITIAL_ADMIN_EMAIL")
     admin_password = os.environ.get("INITIAL_ADMIN_PASSWORD")
 
-    if not admin_email or not admin_password:
-        raise RuntimeError(
-            "INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must be set "
-            "to bootstrap the initial admin user."
+    existing_admin = conn.execute(
+        text("SELECT id FROM users WHERE email = :email LIMIT 1"),
+        {"email": admin_email},
+    ).scalar_one_or_none()
+
+    if existing_admin is None:
+        if not admin_email or not admin_password:
+            raise RuntimeError(
+                "INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must be set "
+                "to bootstrap the initial admin user."
+            )
+
+        default_admin_id = conn.execute(text("SELECT gen_random_uuid()::text")).scalar_one()
+
+        hashed_password = bcrypt.hashpw(admin_password.encode(), bcrypt.gensalt()).decode()
+
+        conn.execute(
+            text(
+                "INSERT INTO users (id, email, hashed_password, name, role, is_active, created_at, updated_at) "
+                "VALUES (:id, :email, :password, :name, :role, :active, NOW(), NOW())"
+            ),
+            {
+                "id": default_admin_id,
+                "email": admin_email,
+                "password": hashed_password,
+                "name": "Admin",
+                "role": "admin",
+                "active": True,
+            },
         )
-
-    hashed_password = bcrypt.hashpw(admin_password.encode(), bcrypt.gensalt()).decode()
-
-    conn.execute(
-        text(
-            "INSERT INTO users (id, email, hashed_password, name, role, is_active, created_at, updated_at) "
-            "VALUES (:id, :email, :password, :name, :role, :active, NOW(), NOW())"
-        ),
-        {
-            "id": default_admin_id,
-            "email": admin_email,
-            "password": hashed_password,
-            "name": "Admin",
-            "role": "admin",
-            "active": True,
-        },
-    )
+    else:
+        default_admin_id = existing_admin
 
     conn.execute(
         text(
