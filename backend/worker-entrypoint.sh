@@ -33,4 +33,5 @@ echo "Starting Celery Worker..."
 exec celery \
     -A app.workers.worker.celery_app \
     worker \
-    --loglevel=info
+    --loglevel=info \
+    --concurrency=2
