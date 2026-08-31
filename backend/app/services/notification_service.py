@@ -3,6 +3,8 @@
 from app.models.notification import Notification
 from app.repositories.notification_repository import NotificationRepository
 
+from app.models.user import User
+
 
 
 
@@ -28,8 +30,10 @@ class NotificationService:
     def get_notification(self, notification_id: str) -> Notification | None:
         return self.repository.get_by_id(notification_id)
 
-    def list_notifications(self) -> list[Notification]:
-        return self.repository.list()
+    def list_notifications(self, user: User) -> list[Notification]:
+        if user.role == "admin":
+            return self.repository.list()
+        return self.repository.list_by_owner(user.id)
 
     def update_status(
         self,

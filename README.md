@@ -157,8 +157,9 @@ Clone the repository.
 
 ```bash
 https://github.com/Herman-Gathege/notifications_pipeline_system
-cd notification-platform
 ssh local-36
+cd notification-platform
+
 ```
 
 Copy the example environment file.

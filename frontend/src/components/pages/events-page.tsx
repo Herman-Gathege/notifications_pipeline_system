@@ -25,6 +25,11 @@ import {
 } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+interface Application {
+  id: string
+  name: string
+}
+
 interface Event {
   id: string
   application_id: string
@@ -39,9 +44,17 @@ interface EventCreateData {
   event_type: string
   payload: string
   channels: string
+  application_id?: string
 }
 
-const EVENT_TYPES = ["payment.success", "payment.rejected", "user.registered", "password.reset", "otp.requested"]
+const EVENT_TYPES = ["payment.success", "user.registered", "password.reset", "otp.requested"]
+
+const EVENT_PAYLOAD_EXAMPLES: Record<string, string> = {
+  "payment.success": JSON.stringify({ customer: "Alice", email: "alice@example.com", phone: "+254700000000", amount: "KES 5,250" }, null, 2),
+  "user.registered": JSON.stringify({ name: "Bob", email: "bob@example.com" }, null, 2),
+  "password.reset": JSON.stringify({ email: "alice@example.com" }, null, 2),
+  "otp.requested": JSON.stringify({ phone: "+254700000000", otp: "123456" }, null, 2),
+}
 
 export default function EventsPage() {
   const { get, post } = useApi<Event[]>()
@@ -51,10 +64,12 @@ export default function EventsPage() {
   const [publishOpen, setPublishOpen] = useState(false)
   const [publishData, setPublishData] = useState<EventCreateData>({
     event_type: EVENT_TYPES[0],
-    payload: '{"customer":"Alice","amount":"KES 5,250"}',
+    payload: EVENT_PAYLOAD_EXAMPLES["payment.success"],
     channels: "email",
   })
   const [publishResult, setPublishResult] = useState<string | null>(null)
+  const [applications, setApplications] = useState<Application[]>([])
+  const [selectedAppId, setSelectedAppId] = useState<string>("")
 
   const fetchEvents = async () => {
     try {
@@ -69,8 +84,31 @@ export default function EventsPage() {
     }
   }
 
+  const fetchApplications = async () => {
+    try {
+      const token = localStorage.getItem("auth_token")
+      const authUser = localStorage.getItem("auth_user")
+      if (!token || !authUser) return
+
+      const rawBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8001"
+      const API_BASE = rawBase.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+      const response = await fetch(`${API_BASE}/api/v1/applications`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!response.ok) return
+      const data = await response.json()
+      setApplications(data)
+      if (data.length > 0 && !selectedAppId) {
+        setSelectedAppId(data[0].id)
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   useEffect(() => {
     fetchEvents()
+    fetchApplications()
   }, [])
 
   const handlePublish = async (e: React.FormEvent) => {
@@ -79,13 +117,26 @@ export default function EventsPage() {
     try {
       const payload = JSON.parse(publishData.payload)
       const channels = publishData.channels.split(",").map((c) => c.trim()).filter(Boolean)
-      await post("/events", { event_type: publishData.event_type, payload, channels })
+      const body: Record<string, unknown> = { event_type: publishData.event_type, payload, channels }
+      if (selectedAppId) {
+        body.application_id = selectedAppId
+      }
+      await post("/events", body)
       setPublishResult("Event published successfully!")
-      setPublishData({ event_type: EVENT_TYPES[0], payload: '{"customer":"Alice","amount":"KES 5,250"}', channels: "email" })
+      setPublishData({ event_type: EVENT_TYPES[0], payload: EVENT_PAYLOAD_EXAMPLES["payment.success"], channels: "email" })
       setPublishOpen(false)
       fetchEvents()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to publish event")
+      const message = err instanceof Error ? err.message : "Failed to publish event"
+      if (message.includes("application_id")) {
+        setError("Please select an application before publishing the event.")
+      } else if (message.includes("payload")) {
+        setError(`Payload validation failed: ${message}`)
+      } else if (message.includes("token") || message.includes("Authorization")) {
+        setError("Your session has expired or is invalid. Please sign in again.")
+      } else {
+        setError(message)
+      }
       setPublishResult(null)
     }
   }
@@ -108,7 +159,7 @@ export default function EventsPage() {
                 <Label htmlFor="event-type">Event Type</Label>
                  <Select value={publishData.event_type} onValueChange={(v) => {
                        if (!v) return
-                       setPublishData({ ...publishData, event_type: v })
+                       setPublishData({ ...publishData, event_type: v, payload: EVENT_PAYLOAD_EXAMPLES[v] || '{}' })
                      }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -126,6 +177,22 @@ export default function EventsPage() {
                 <Label htmlFor="event-channels">Channels (comma-separated)</Label>
                 <Input id="event-channels" value={publishData.channels} onChange={(e) => setPublishData({ ...publishData, channels: e.target.value })} placeholder="email, sms" required />
               </div>
+              {applications.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="event-application">Application</Label>
+                  <Select value={selectedAppId} onValueChange={(v) => {
+                        if (!v) return
+                        setSelectedAppId(v)
+                      }}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {applications.map((app) => (
+                        <SelectItem key={app.id} value={app.id}>{app.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <DialogFooter>
                 <Button type="submit">Publish</Button>
               </DialogFooter>
@@ -186,7 +253,7 @@ export default function EventsPage() {
             <TabsContent value="email">
               <pre className="text-xs bg-muted p-3 rounded-md">{`{
   "event_type": "payment.success",
-  "payload": { "customer": "Alice", "amount": "KES 5,250" },
+  "payload": { "customer": "Alice", "email": "alice@example.com", "phone": "+254700000000", "amount": "KES 5,250" },
   "channels": ["email"]
 }`}</pre>
             </TabsContent>

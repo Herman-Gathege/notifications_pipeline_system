@@ -1,13 +1,18 @@
 # backend/app/api/v1/events.py
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
-from app.api.security import get_current_application
+from app.api.security import get_current_application, get_current_user
+from jose import jwt, JWTError
 
 from app.database.session import get_db
 from app.repositories.event_repository import EventRepository
 from app.repositories.notification_repository import NotificationRepository
+from app.repositories.application_repository import ApplicationRepository
+from app.repositories.application_repository import ApplicationRepository
 from app.schemas.event import EventCreate, EventResponse
 from app.services.event_service import EventService
+from app.models.user import User
+from app.config.settings import settings
 
 router = APIRouter(
     prefix="/events",
@@ -25,18 +30,6 @@ def get_event_service(db: Session = Depends(get_db)) -> EventService:
     )
 
 
-# @router.post(
-#     "",
-#     response_model=EventResponse,
-#     status_code=status.HTTP_201_CREATED,
-# )
-# def create_event(
-#     payload: EventCreate,
-#     service: EventService = Depends(get_event_service),
-# ):
-#     return service.create_event(payload)
-
-
 @router.post(
     "",
     response_model=EventResponse,
@@ -44,12 +37,53 @@ def get_event_service(db: Session = Depends(get_db)) -> EventService:
 )
 def create_event(
     payload: EventCreate,
-    current_app=Depends(get_current_application),
+    authorization: str = Header(...),
+    db: Session = Depends(get_db),
     service: EventService = Depends(get_event_service),
 ):
+    token = authorization.replace("Bearer ", "")
+    
+    try:
+        token_payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=["HS256"],
+        )
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="The provided token is invalid or has expired. Please obtain a new token.",
+        )
+    
+    token_type = token_payload.get("type")
+    
+    if token_type == "application":
+        application_id = token_payload["sub"]
+    elif token_type == "user":
+        if not payload.application_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="application_id is required when using a user token.",
+            )
+        
+        application = ApplicationRepository(db).get_by_id(payload.application_id)
+        
+        if application is None or application.owner_id != token_payload["sub"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to publish events for this application.",
+            )
+        
+        application_id = payload.application_id
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token type.",
+        )
+    
     return service.create_event(
         payload,
-        current_app["sub"],
+        application_id,
     )
 
 
@@ -58,9 +92,10 @@ def create_event(
     response_model=list[EventResponse],
 )
 def list_events(
+    current_user: User = Depends(get_current_user),
     service: EventService = Depends(get_event_service),
 ):
-    return service.list_events()
+    return service.list_events(current_user)
 
 
 @router.get(

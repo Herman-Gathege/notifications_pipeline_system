@@ -11,6 +11,7 @@ class EventCreate(BaseModel):
     event_type: str
     payload: dict
     channels: list[str]
+    application_id: str | None = None
 
 
 class EventResponse(BaseModel):

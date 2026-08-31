@@ -9,6 +9,8 @@ from app.schemas.event import EventCreate
 
 from app.services.event_validation_service import EventValidationService
 
+from app.models.user import User
+
 # from app.workers.notification_worker import process_notification
 
 
@@ -70,8 +72,10 @@ class EventService:
     def get_event(self, event_id: str) -> Event | None:
         return self.event_repository.get_by_id(event_id)
 
-    def list_events(self) -> list[Event]:
-        return self.event_repository.list()
+    def list_events(self, user: User) -> list[Event]:
+        if user.role == "admin":
+            return self.event_repository.list()
+        return self.event_repository.list_by_owner(user.id)
 
     def mark_processed(self, event: Event) -> Event:
         event.is_processed = True

@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.dependencies import get_provider_service
+from app.api.security import get_current_user, require_admin
 from app.schemas.provider import (
     ProviderCreate,
     ProviderResponse,
@@ -10,6 +11,7 @@ from app.schemas.provider import (
     ProviderUpdate,
 )
 from app.services.provider_service import ProviderService
+from app.models.user import User
 
 router = APIRouter(
     prefix="/providers",
@@ -24,6 +26,7 @@ router = APIRouter(
 )
 def create_provider(
     data: ProviderCreate,
+    current_user: User = Depends(require_admin),
     service: ProviderService = Depends(get_provider_service),
 ):
     return service.create(data)
@@ -34,6 +37,7 @@ def create_provider(
     response_model=list[ProviderResponse],
 )
 def list_providers(
+    current_user: User = Depends(get_current_user),
     service: ProviderService = Depends(get_provider_service),
 ):
     return service.list()
@@ -46,6 +50,7 @@ def list_providers(
 def update_provider(
     provider_id: str,
     data: ProviderUpdate,
+    current_user: User = Depends(require_admin),
     service: ProviderService = Depends(get_provider_service),
 ):
     provider = service.update(
@@ -79,6 +84,7 @@ def update_provider(
 )
 def delete_provider(
     provider_id: str,
+    current_user: User = Depends(require_admin),
     service: ProviderService = Depends(get_provider_service),
 ):
     success = service.delete(provider_id)
@@ -98,6 +104,7 @@ def delete_provider(
 def test_provider(
     provider_id: str,
     data: ProviderTestRequest,
+    current_user: User = Depends(require_admin),
     service: ProviderService = Depends(get_provider_service),
 ):
     return service.test_provider(

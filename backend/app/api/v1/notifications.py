@@ -6,6 +6,8 @@ from app.database.session import get_db
 from app.repositories.notification_repository import NotificationRepository
 from app.schemas.notification import NotificationResponse
 from app.services.notification_service import NotificationService
+from app.api.security import get_current_user
+from app.models.user import User
 
 router = APIRouter(
     prefix="/notifications",
@@ -25,9 +27,10 @@ def get_notification_service(
     response_model=list[NotificationResponse],
 )
 def list_notifications(
+    current_user: User = Depends(get_current_user),
     service: NotificationService = Depends(get_notification_service),
 ):
-    return service.list_notifications()
+    return service.list_notifications(current_user)
 
 
 @router.get(

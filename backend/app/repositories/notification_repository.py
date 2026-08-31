@@ -1,11 +1,12 @@
 # backend/app/repositories/notification_repository.py
+from __future__ import annotations
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.notification import Notification
-from datetime import datetime, timedelta, UTC
-
-from app.models.notification import Notification
+from app.models.event import Event
+from app.models.application import Application
 
 class NotificationRepository:
     def __init__(self, db: Session):
@@ -23,6 +24,16 @@ class NotificationRepository:
     def list(self) -> list[Notification]:
         stmt = (
             select(Notification)
+            .order_by(Notification.created_at.desc())
+        )
+        return list(self.db.scalars(stmt).all())
+
+    def list_by_owner(self, owner_id: str) -> list[Notification]:
+        stmt = (
+            select(Notification)
+            .join(Event, Notification.event_id == Event.id)
+            .join(Application, Event.application_id == Application.id)
+            .filter(Application.owner_id == owner_id)
             .order_by(Notification.created_at.desc())
         )
         return list(self.db.scalars(stmt).all())
