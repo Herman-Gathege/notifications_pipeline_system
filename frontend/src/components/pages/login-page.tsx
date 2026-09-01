@@ -34,6 +34,17 @@ export default function LoginPage() {
     setError("")
     setLoading(true)
 
+    if (!email) {
+      setError("Please enter your email.")
+      setLoading(false)
+      return
+    }
+    if (!password) {
+      setError("Please enter your password.")
+      setLoading(false)
+      return
+    }
+
     try {
       const response = await fetch(`${AUTH_BASE}/auth/login`, {
         method: "POST",
@@ -61,6 +72,17 @@ export default function LoginPage() {
     setError("")
     setLoading(true)
 
+    if (!apiKey) {
+      setError("Please enter your API key.")
+      setLoading(false)
+      return
+    }
+    if (!secret) {
+      setError("Please enter your secret.")
+      setLoading(false)
+      return
+    }
+
     try {
       const response = await fetch(`${AUTH_BASE}/auth/token`, {
         method: "POST",
@@ -86,8 +108,11 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/50">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Notification Platform</CardTitle>
+        <CardHeader className="text-center">
+          <div className="mb-4 flex justify-center">
+            <img src="/FikaTu-logo.png" alt="FikaTu" className="h-16 w-auto" />
+          </div>
+          <CardTitle className="text-2xl">FikaTu</CardTitle>
           <CardDescription>Sign in to manage notifications</CardDescription>
         </CardHeader>
         <CardContent>
@@ -103,7 +128,7 @@ export default function LoginPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="admin@notification-platform"
+                    placeholder="admin@fikatu.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required

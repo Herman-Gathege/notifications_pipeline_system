@@ -4,19 +4,20 @@ import { useLocation } from "react-router-dom"
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
-  "/applications": "Applications",
-  "/providers": "Providers",
-  "/templates": "Templates",
-  "/events": "Events",
-  "/notifications": "Notifications",
-  "/monitoring": "Monitoring",
-  "/reports": "Reports",
+  "/dashboard/applications": "Applications",
+  "/dashboard/providers": "Providers",
+  "/dashboard/templates": "Templates",
+  "/dashboard/events": "Events",
+  "/dashboard/notifications": "Notifications",
+  "/dashboard/monitoring": "Monitoring",
+  "/dashboard/reports": "Reports",
+  "/dashboard/users": "Users",
 }
 
 export function SiteHeader() {
   const location = useLocation()
   const path = location.pathname
-  const title = pageTitles[path] || "Notification Platform"
+  const title = pageTitles[path] || "FikaTu"
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">

@@ -31,21 +31,20 @@ def get_service(db: Session):
     )
 
 
-def serialize_application(application):
-    api_key = None
-
-    if application.api_keys:
-        api_key = application.api_keys[0].token
-
-    return {
+def serialize_application(application, show_secret: bool = False):
+    result = {
         "id": application.id,
         "name": application.name,
-        "api_key": api_key,
-        "secret": application.secret,
+        "secret": application.secret if show_secret else None,
         "status": "active" if application.status else "inactive",
         "created_at": application.created_at,
         "updated_at": application.updated_at,
     }
+
+    if show_secret and application.api_keys:
+        result["api_key"] = application.api_keys[0].token
+
+    return result
 
 
 def assert_owner_or_admin(application, current_user: User):
@@ -67,7 +66,7 @@ def create_application(
     try:
         application, api_key = service.create_application(payload.name, owner_id=current_user.id)
 
-        response = serialize_application(application)
+        response = serialize_application(application, show_secret=True)
         response["api_key"] = api_key.token
         return response
 
@@ -88,7 +87,7 @@ def list_applications(
         applications = ApplicationRepository(db).get_by_owner(current_user.id)
 
     return [
-        serialize_application(application)
+        serialize_application(application, show_secret=False)
         for application in applications
     ]
 
@@ -107,7 +106,7 @@ def get_application(
 
     assert_owner_or_admin(application, current_user)
 
-    return serialize_application(application)
+    return serialize_application(application, show_secret=False)
 
 
 @router.patch("/{application_id}", response_model=ApplicationResponse)
@@ -139,7 +138,7 @@ def update_application(
             detail="Application not found.",
         )
 
-    return serialize_application(application)
+    return serialize_application(application, show_secret=False)
 
 
 @router.delete("/{application_id}", status_code=204)

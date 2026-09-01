@@ -1,4 +1,3 @@
-# backend/app/services/provider_resolver.py
 from app.providers.email.resend_provider import ResendProvider
 from app.providers.smtp_provider import SMTPProvider
 from app.repositories.provider_repository import ProviderRepository
@@ -40,27 +39,23 @@ class ProviderResolver:
             )
 
         if provider.transport_type == "smtp":
-
-                implementation = SMTPProvider(
-                    provider,
-                )
+            implementation = SMTPProvider(
+                provider,
+            )
 
         elif (
             provider.transport_type == "api"
             and provider.name == "Resend"
         ):
-
             implementation = ResendProvider()
 
         elif (
             provider.transport_type == "api"
             and provider.name == "Africa's Talking"
         ):
-
             implementation = SMSProvider()
 
         else:
-
             raise ValueError(
                 f"No implementation for provider "
                 f"'{provider.name}' "

@@ -12,6 +12,9 @@ class NotificationResponse(BaseModel):
     recipient: str
     channel: str
     status: str
+    provider: str | None = None
+    processing_time_ms: int | None = None
+    failure_reason: str | None = None
     created_at: datetime
     updated_at: datetime
 

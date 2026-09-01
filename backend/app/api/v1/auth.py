@@ -107,12 +107,32 @@ def login(
 ):
     service = get_auth_service(db)
 
+    user = service.user_service.get_by_email(payload.email)
+
+    if user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="No account found with this email. Please verify your email address or register.",
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=403,
+            detail="Your account has been deactivated. Please contact an administrator.",
+        )
+
+    if not service.user_service.authenticate(payload.email, payload.password):
+        raise HTTPException(
+            status_code=401,
+            detail="The password you entered is incorrect. Please try again.",
+        )
+
     token_data = service.login_user(payload.email, payload.password)
 
     if token_data is None:
         raise HTTPException(
-            status_code=401,
-            detail="Invalid email or password.",
+            status_code=500,
+            detail="An unexpected error occurred during login. Please try again.",
         )
 
     return UserTokenResponse(

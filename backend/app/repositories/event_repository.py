@@ -1,8 +1,11 @@
 # backend/app/repositories/event_repository.py
+from __future__ import annotations
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.event import Event
+from app.models.application import Application
 
 
 class EventRepository:
@@ -21,6 +24,15 @@ class EventRepository:
     def list(self) -> list[Event]:
         stmt = (
             select(Event)
+            .order_by(Event.created_at.desc())
+        )
+        return list(self.db.scalars(stmt).all())
+
+    def list_by_owner(self, owner_id: str) -> list[Event]:
+        stmt = (
+            select(Event)
+            .join(Application, Event.application_id == Application.id)
+            .filter(Application.owner_id == owner_id)
             .order_by(Event.created_at.desc())
         )
         return list(self.db.scalars(stmt).all())
