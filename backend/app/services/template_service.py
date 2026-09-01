@@ -1,5 +1,7 @@
 # backend/app/services/template_service.py
 
+from __future__ import annotations
+
 from app.models.template import Template
 from app.repositories.template_repository import TemplateRepository
 from app.schemas.template import (
@@ -48,6 +50,9 @@ class TemplateService:
 
     def list(self):
         return self.repository.list()
+
+    def get_distinct_event_types(self) -> list[str]:
+        return self.repository.get_distinct_event_types()
 
     def update(
         self,

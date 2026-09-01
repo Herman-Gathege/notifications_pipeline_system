@@ -1,5 +1,13 @@
 # backend/app/providers/sms/sms_provider.py
 
+import requests
+
+class _NoSSLVerifySession(requests.Session):
+    trust_env = False
+    verify = False
+
+requests.Session = _NoSSLVerifySession
+
 import africastalking
 
 from app.config.settings import settings

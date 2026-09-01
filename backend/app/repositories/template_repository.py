@@ -1,6 +1,8 @@
 # backend/app/repositories/template_repository.py
 
 
+from __future__ import annotations
+
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -46,6 +48,17 @@ class TemplateRepository:
             .order_by(Template.created_at.desc())
             .all()
         )
+
+    def get_distinct_event_types(self) -> list[str]:
+        return [
+            row[0]
+            for row in (
+                self.db.query(Template.event_type)
+                .distinct()
+                .order_by(Template.event_type)
+                .all()
+            )
+        ]
 
     def update(self, template: Template) -> Template:
         self.db.commit()

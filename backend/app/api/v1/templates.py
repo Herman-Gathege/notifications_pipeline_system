@@ -16,6 +16,17 @@ router = APIRouter(
 )
 
 
+@router.get(
+    "/event-types",
+    response_model=list[str],
+)
+def list_event_types(
+    current_user: User = Depends(get_current_user),
+    service: TemplateService = Depends(get_template_service),
+):
+    return service.get_distinct_event_types()
+
+
 @router.post(
     "",
     response_model=TemplateResponse,

@@ -26,9 +26,16 @@ class OTPRequestedPayload(BaseModel):
     otp: str
 
 
+class GreetingsPayload(BaseModel):
+    customer: str
+    phone: str
+    otp: str | None = None
+
+
 EVENT_REGISTRY: dict[str, type[BaseModel]] = {
     "payment.success": PaymentSuccessPayload,
     "user.registered": UserRegisteredPayload,
     "password.reset": PasswordResetPayload,
     "otp.requested": OTPRequestedPayload,
+    "greetings": GreetingsPayload,
 }
