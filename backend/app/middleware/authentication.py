@@ -9,17 +9,21 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request, call_next):
 
-        public_prefixes = (
+        public_paths = (
             "/",
             "/health",
+            "/api/v1/health",
             "/metrics",
             "/docs",
             "/redoc",
             "/openapi.json",
             "/api/v1/auth/token",
+            "/api/v1/auth/login",
+            "/api/v1/auth/register",
+            "/api/v1/auth/validate",
         )
 
-        if any(request.url.path.startswith(path) for path in public_prefixes):
+        if request.url.path in public_paths:
             return await call_next(request)
 
         auth_header = request.headers.get("Authorization")

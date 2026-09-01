@@ -6,6 +6,7 @@ from app.models.notification import Notification
 from app.models.template import Template
 from app.models.provider import Provider
 from .notification_report import NotificationReport
+from .user import User
 
 __all__ = [
     "Application",
@@ -15,4 +16,5 @@ __all__ = [
     "Template",
     "Provider",
     "NotificationReport",
+    "User",
 ]

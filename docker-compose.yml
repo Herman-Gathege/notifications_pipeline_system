@@ -3,10 +3,10 @@ services:
   # ==================================================
   # PostgreSQL Database (internal only)
   # ==================================================
+
   notification-postgres:
     container_name: notification-postgres
     image: postgres:17-alpine
-
     restart: unless-stopped
 
     env_file:
@@ -41,6 +41,7 @@ services:
           cpus: "1.0"
         reservations:
           memory: 256M
+
     mem_limit: 512m
     mem_reservation: 256m
     cpus: "1.0"
@@ -51,13 +52,14 @@ services:
         max-size: "10m"
         max-file: "3"
 
+
   # ==================================================
   # Redis (internal only)
   # ==================================================
+
   notification-redis:
     container_name: notification-redis
     image: redis:7-alpine
-
     restart: unless-stopped
 
     env_file:
@@ -89,6 +91,7 @@ services:
           cpus: "0.5"
         reservations:
           memory: 128M
+
     mem_limit: 256m
     mem_reservation: 128m
     cpus: "0.5"
@@ -99,18 +102,20 @@ services:
         max-size: "10m"
         max-file: "3"
 
+
   # ==================================================
   # FastAPI Backend (internal only)
   # ==================================================
+
   notification-api:
     container_name: notification-api
 
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: api
 
     working_dir: /app
-
     restart: unless-stopped
 
     env_file:
@@ -143,6 +148,7 @@ services:
           cpus: "1.0"
         reservations:
           memory: 256M
+
     mem_limit: 512m
     mem_reservation: 256m
     cpus: "1.0"
@@ -153,15 +159,18 @@ services:
         max-size: "10m"
         max-file: "3"
 
+
   # ==================================================
   # Celery Worker (internal only)
   # ==================================================
+
   notification-worker:
     container_name: notification-worker
 
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: worker
 
     working_dir: /app
 
@@ -186,7 +195,17 @@ services:
     # Production: no development bind mount; uses built image
 
     healthcheck:
-      test: ["CMD", "celery", "-A", "app.workers.worker.celery_app", "inspect", "--timeout", "10", "ping"]
+      test:
+        [
+          "CMD",
+          "celery",
+          "-A",
+          "app.workers.worker.celery_app",
+          "inspect",
+          "--timeout",
+          "10",
+          "ping"
+        ]
       interval: 30s
       timeout: 15s
       retries: 5
@@ -198,11 +217,12 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 512M
           cpus: "0.5"
         reservations:
           memory: 128M
-    mem_limit: 256m
+
+    mem_limit: 512m
     mem_reservation: 128m
     cpus: "0.5"
 
@@ -212,9 +232,11 @@ services:
         max-size: "10m"
         max-file: "3"
 
+
   # ==================================================
   # React Frontend (internal only — served via production build)
   # ==================================================
+
   notification-frontend:
     container_name: notification-frontend
 
@@ -247,6 +269,7 @@ services:
           cpus: "0.5"
         reservations:
           memory: 64M
+
     mem_limit: 128m
     mem_reservation: 64m
     cpus: "0.5"
@@ -257,9 +280,11 @@ services:
         max-size: "10m"
         max-file: "3"
 
+
   # ==================================================
   # Nginx Reverse Proxy (only service exposed on host)
   # ==================================================
+
   notification-nginx:
     container_name: notification-nginx
 
@@ -289,6 +314,7 @@ services:
           cpus: "0.5"
         reservations:
           memory: 64M
+
     mem_limit: 128m
     mem_reservation: 64m
     cpus: "0.5"
@@ -299,16 +325,20 @@ services:
         max-size: "10m"
         max-file: "3"
 
-# ==================================================
-# Persistent Volumes (uniquely named)
-# ==================================================
+
+  # ==================================================
+  # Persistent Volumes (uniquely named)
+  # ==================================================
+
 volumes:
   postgres_data:
     name: notification-postgres-data
 
-# ==================================================
-# Internal Network (uniquely named, no host access)
-# ==================================================
+
+  # ==================================================
+  # Internal Network (uniquely named, no host access)
+  # ==================================================
+
 networks:
   notification-network:
     name: notification-network

@@ -2,11 +2,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_db
-# from app.repositories.application_repository import ApplicationRepository
+from app.api.dependencies import get_auth_service, get_db, get_user_service
 from app.schemas.auth import (
     TokenRequest,
     TokenResponse,
+    UserLogin,
+    UserRegister,
+    UserTokenResponse,
     ValidateTokenRequest,
     ValidateTokenResponse,
 )
@@ -21,10 +23,9 @@ router = APIRouter(
 
 
 def get_auth_service(db: Session):
-    repository = APIKeyRepository(db)
-    apikey_service = APIKeyService(repository)
-
-    return AuthenticationService(apikey_service)
+    api_key_service = APIKeyService(APIKeyRepository(db))
+    user_service = get_user_service(db)
+    return AuthenticationService(api_key_service, user_service)
 
 
 @router.post("/token", response_model=TokenResponse)
@@ -65,5 +66,76 @@ def validate_token(
 
     return ValidateTokenResponse(
         valid=True,
-        application_id=decoded["sub"],
+        application_id=decoded.get("sub"),
+    )
+
+
+@router.post("/register", response_model=UserTokenResponse)
+def register(
+    payload: UserRegister,
+    db: Session = Depends(get_db),
+):
+    service = get_auth_service(db)
+
+    try:
+        user = service.register_user(
+            email=payload.email,
+            password=payload.password,
+            name=payload.name,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    token_data = service.login_user(payload.email, payload.password)
+
+    if token_data is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Registration succeeded but automatic login failed. Please log in.",
+        )
+
+    return UserTokenResponse(
+        access_token=token_data["access_token"],
+        user=token_data["user"],
+    )
+
+
+@router.post("/login", response_model=UserTokenResponse)
+def login(
+    payload: UserLogin,
+    db: Session = Depends(get_db),
+):
+    service = get_auth_service(db)
+
+    user = service.user_service.get_by_email(payload.email)
+
+    if user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="No account found with this email. Please verify your email address or register.",
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=403,
+            detail="Your account has been deactivated. Please contact an administrator.",
+        )
+
+    if not service.user_service.authenticate(payload.email, payload.password):
+        raise HTTPException(
+            status_code=401,
+            detail="The password you entered is incorrect. Please try again.",
+        )
+
+    token_data = service.login_user(payload.email, payload.password)
+
+    if token_data is None:
+        raise HTTPException(
+            status_code=500,
+            detail="An unexpected error occurred during login. Please try again.",
+        )
+
+    return UserTokenResponse(
+        access_token=token_data["access_token"],
+        user=token_data["user"],
     )

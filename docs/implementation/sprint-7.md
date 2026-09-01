@@ -6,6 +6,71 @@ Deliver a complete, production-ready notification platform with an administratio
 
 ---
 
+# Completed: Authentication & Ownership Refactor (2026-08-21)
+
+## Overview
+
+Introduced human user authentication and role-based access control (RBAC) while preserving the existing machine-to-machine application authentication.
+
+## What Was Built
+
+### Backend
+
+- **User Model** (`app/models/user.py`) — UUID primary key, email, hashed_password, name, role, is_active, timestamps
+- **Application Ownership** — Added `owner_id` foreign key to `users.id` on the `applications` table
+- **User Schemas** (`app/schemas/user.py`) — `UserCreate`, `UserUpdate`, `UserResponse`
+- **Auth Schemas** (`app/schemas/auth.py`) — `UserLogin`, `UserRegister`, `UserTokenResponse`
+- **User Service** (`app/services/user_service.py`) — Registration, password handling, JWT creation/validation
+- **Authentication Service** (`app/services/authentication_service.py`) — Extended with user login/register; machine auth preserved
+- **User Repository** (`app/repositories/user_repository.py`) — CRUD for users
+- **Security Dependencies** (`app/api/security.py`) — `get_current_user()`, `require_admin()`; `get_current_application()` preserved
+- **API Routes**
+  - `POST /api/v1/auth/register` — User registration
+  - `POST /api/v1/auth/login` — User login
+  - `GET /api/v1/users/me` — Current user profile
+  - `GET /api/v1/users` — List users (admin)
+  - `GET /api/v1/users/{id}` — Get user (admin)
+  - `PATCH /api/v1/users/{id}` — Update user (admin)
+  - `DELETE /api/v1/users/{id}` — Delete user (admin)
+- **Application Authorization** — All application endpoints now require user authentication and enforce ownership
+- **Database Migration** — `a1b2c3d4e5f6_create_users_and_application_ownership.py`
+  - Creates `users` table
+  - Adds `owner_id` to `applications`
+  - Seeds default admin (`admin@notification-platform` / `admin123`)
+  - Backfills existing applications to default admin
+
+### Frontend
+
+- **AuthContext** (`src/contexts/auth-context.tsx`) — Global auth state management
+- **Login Page** (`src/components/pages/login-page.tsx`) — User login + API key login tabs
+- **Register Page** (`src/components/pages/register-page.tsx`) — New user registration
+- **App.tsx** — Protected routes with `ProtectedRoute` wrapper
+- **Sidebar** — Dynamic user display from `AuthContext`
+- **NavUser** — Logout via `AuthContext`
+
+### Dual Authentication Model
+
+| Identity | Auth Method | JWT Type | Used For |
+|----------|-------------|----------|----------|
+| Human User | Email + Password | `type: "user"` | Frontend, application management |
+| Machine/Application | API Key + Secret | `type: "application"` | Notifications, events |
+
+## Security
+
+- User JWTs and application JWTs are strictly separated
+- Application endpoints enforce ownership server-side
+- Admin role has full access; user role limited to own resources
+- Inactive users are blocked from authentication
+
+## Environment
+
+- `SECRET_KEY` — Used for both user and application JWTs (no change needed)
+- `ACCESS_TOKEN_EXPIRE_MINUTES=60` — User token expiry (now read by settings)
+- `VITE_API_BASE_URL=/api/v1` — Frontend auth URLs compute correctly
+- Default admin password must be changed after first deploy
+
+---
+
 # Objectives
 
 - Build a full administration dashboard (frontend)
@@ -321,6 +386,11 @@ Deliver a complete, production-ready notification platform with an administratio
 - [x] Comprehensive API and developer documentation
 - [x] Platform fully tested
 - [x] Production-ready release candidate
+- [x] Human user authentication (email/password + JWT)
+- [x] Role-based access control (admin/user)
+- [x] Application ownership enforcement
+- [x] User management APIs
+- [x] Dual authentication (human + machine)
 
 ---
 
@@ -328,3 +398,10 @@ Deliver a complete, production-ready notification platform with an administratio
 
 Notification Platform MVP Complete
 Version 1.0 Ready for Production Deployment
+
+Authentication & Ownership Refactor Complete
+- Human user authentication with email/password
+- Role-based access control (admin/user)
+- Application ownership enforcement
+- Dual authentication model (human JWT + machine API key)
+- All existing notification pipeline functionality preserved

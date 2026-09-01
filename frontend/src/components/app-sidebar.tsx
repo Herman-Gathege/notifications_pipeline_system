@@ -12,66 +12,93 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, FolderIcon, ServerIcon, FileTextIcon, SendIcon, BellIcon, BarChart3Icon, FileChartColumnIcon, LogOutIcon } from "lucide-react"
+import {
+  LayoutDashboardIcon,
+  FolderIcon,
+  ServerIcon,
+  FileTextIcon,
+  SendIcon,
+  BellIcon,
+  BarChart3Icon,
+  FileChartColumnIcon,
+  LogOutIcon,
+  UsersIcon,
+} from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 
-const data = {
-  user: {
-    name: "Admin",
-    email: "admin@notification-platform",
-    avatar: "/avatars/shadcn.jpg",
+const baseNavMain = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: <LayoutDashboardIcon />,
   },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: <LayoutDashboardIcon />,
-    },
-    {
-      title: "Applications",
-      url: "/applications",
-      icon: <FolderIcon />,
-    },
-    {
-      title: "Providers",
-      url: "/providers",
-      icon: <ServerIcon />,
-    },
-    {
-      title: "Templates",
-      url: "/templates",
-      icon: <FileTextIcon />,
-    },
-    {
-      title: "Events",
-      url: "/events",
-      icon: <SendIcon />,
-    },
-    {
-      title: "Notifications",
-      url: "/notifications",
-      icon: <BellIcon />,
-    },
-    {
-      title: "Monitoring",
-      url: "/monitoring",
-      icon: <BarChart3Icon />,
-    },
-    {
-      title: "Reports",
-      url: "/reports",
-      icon: <FileChartColumnIcon />,
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Logout",
-      url: "#",
-      icon: <LogOutIcon />,
-    },
-  ],
-}
+  {
+    title: "Applications",
+    url: "/dashboard/applications",
+    icon: <FolderIcon />,
+  },
+  {
+    title: "Providers",
+    url: "/dashboard/providers",
+    icon: <ServerIcon />,
+  },
+  {
+    title: "Templates",
+    url: "/dashboard/templates",
+    icon: <FileTextIcon />,
+  },
+  {
+    title: "Events",
+    url: "/dashboard/events",
+    icon: <SendIcon />,
+  },
+  {
+    title: "Notifications",
+    url: "/dashboard/notifications",
+    icon: <BellIcon />,
+  },
+  {
+    title: "Monitoring",
+    url: "/dashboard/monitoring",
+    icon: <BarChart3Icon />,
+  },
+  {
+    title: "Reports",
+    url: "/dashboard/reports",
+    icon: <FileChartColumnIcon />,
+  },
+]
+
+const navSecondary = [
+  {
+    title: "Logout",
+    url: "#",
+    icon: <LogOutIcon />,
+  },
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth()
+
+  const navMain = [...baseNavMain]
+  if (user?.role === "admin") {
+    navMain.push({
+      title: "Users",
+      url: "/dashboard/users",
+      icon: <UsersIcon />,
+    })
+  }
+
+  const currentUser = user
+    ? {
+        name: user.name,
+        email: user.email,
+      }
+    : {
+        name: "Admin",
+        email: "admin@fikatu.com",
+      }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -81,17 +108,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:p-1.5!"
               render={<a href="/dashboard" />}
             >
-              <span className="text-base font-semibold">Notify Platform</span>
+              <img src="/FikaTu-logo.png" alt="FikaTu" className="h-8 w-auto" />
+              <span className="text-base font-semibold">FikaTu</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navMain} />
+        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={currentUser} />
       </SidebarFooter>
     </Sidebar>
   )

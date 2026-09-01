@@ -116,8 +116,6 @@ class ProviderService:
                 detail="Provider is disabled.",
             )
 
-        
-
         if provider.transport_type == "smtp":
 
             client = SMTPProvider(provider)
@@ -128,6 +126,13 @@ class ProviderService:
         ):
 
             client = ResendProvider()
+
+        elif (
+            provider.transport_type == "api"
+            and provider.name == "Africa's Talking"
+        ):
+
+            client = SMSProvider()
 
         else:
 
@@ -141,7 +146,7 @@ class ProviderService:
 
         return client.send(
             recipient=recipient,
-            subject="Notification Platform Test",
+            subject="FikaTu Provider Test",
             body=(
                 "Congratulations!\n\n"
                 "Your notification provider is configured correctly."

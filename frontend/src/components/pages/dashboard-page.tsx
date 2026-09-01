@@ -22,7 +22,7 @@ export default function DashboardPage() {
   const fetchStats = async () => {
     try {
       setLoading(true)
-      const data = await get("/api/v1/monitoring/statistics")
+      const data = await get("/monitoring/statistics")
       setStats(data)
       setError("")
     } catch (err) {

@@ -32,7 +32,7 @@ export default function ApplicationsPage() {
   const fetchApplications = async () => {
     try {
       setLoading(true)
-      const data = await get("/api/v1/applications")
+      const data = await get("/applications")
       setApplications(data)
       setError("")
     } catch (err) {
@@ -49,7 +49,7 @@ export default function ApplicationsPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await post("/api/v1/applications", { name })
+      await post("/applications", { name })
       setName("")
       setCreateOpen(false)
       fetchApplications()
@@ -60,7 +60,7 @@ export default function ApplicationsPage() {
 
   const handleUpdate = async (id: string) => {
     try {
-      await patch(`/api/v1/applications/${id}`, { name: editName })
+      await patch(`/applications/${id}`, { name: editName })
       setEditingApp(null)
       setEditName("")
       fetchApplications()
@@ -71,7 +71,7 @@ export default function ApplicationsPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      await del(`/api/v1/applications/${id}`)
+      await del(`/applications/${id}`)
       fetchApplications()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete application")

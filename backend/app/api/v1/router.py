@@ -9,6 +9,7 @@ from .providers import router as provider_router
 from .templates import router as template_router
 from .reports import router as report_router
 from .monitoring import router as monitoring_router
+from .users import router as user_router
 
 
 api_router = APIRouter(prefix="/api/v1")
@@ -21,3 +22,4 @@ api_router.include_router(provider_router)
 api_router.include_router(template_router)
 api_router.include_router(report_router)
 api_router.include_router(monitoring_router)
+api_router.include_router(user_router)

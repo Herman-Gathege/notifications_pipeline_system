@@ -37,7 +37,7 @@ export default function MonitoringPage() {
   const fetchStats = async () => {
     try {
       setLoading(true)
-      const data = await get("/api/v1/monitoring/statistics")
+      const data = await get("/monitoring/statistics")
       setStats(data)
       setError("")
     } catch (err) {
@@ -140,7 +140,7 @@ function LogsTable() {
   const fetchLogs = async () => {
     try {
       setLoading(true)
-      const data = await get("/api/v1/monitoring/logs")
+      const data = await get("/monitoring/logs")
       setLogs(data)
       setError("")
     } catch (err) {

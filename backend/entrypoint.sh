@@ -4,7 +4,7 @@ set -e
 
 echo ""
 echo "===================================="
-echo "Herman El-Maestro created this..."
+echo "FikaTu — Centralized Notification Platform"
 echo "===================================="
 
 echo "Waiting for PostgreSQL..."

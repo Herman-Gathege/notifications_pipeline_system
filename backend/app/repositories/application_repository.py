@@ -33,6 +33,13 @@ class ApplicationRepository:
             .first()
         )
 
+    def get_by_owner(self, owner_id: str) -> list[Application]:
+        return (
+            self.db.query(Application)
+            .filter(Application.owner_id == owner_id)
+            .all()
+        )
+
     # def get_by_api_key(self, api_key: str) -> Application | None:
     #     return (
     #         self.db.query(Application)

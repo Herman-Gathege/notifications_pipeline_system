@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.dependencies import get_template_service
+from app.api.security import get_current_user, require_admin
 from app.schemas.template import (
     TemplateCreate,
     TemplateResponse,
     TemplateUpdate,
 )
 from app.services.template_service import TemplateService
+from app.models.user import User
 
 router = APIRouter(
     prefix="/templates",
@@ -21,6 +23,7 @@ router = APIRouter(
 )
 def create_template(
     data: TemplateCreate,
+    current_user: User = Depends(require_admin),
     service: TemplateService = Depends(get_template_service),
 ):
     return service.create(data)
@@ -31,6 +34,7 @@ def create_template(
     response_model=list[TemplateResponse],
 )
 def list_templates(
+    current_user: User = Depends(get_current_user),
     service: TemplateService = Depends(get_template_service),
 ):
     return service.list()
@@ -43,6 +47,7 @@ def list_templates(
 def update_template(
     template_id: str,
     data: TemplateUpdate,
+    current_user: User = Depends(require_admin),
     service: TemplateService = Depends(get_template_service),
 ):
     template = service.update(
@@ -65,6 +70,7 @@ def update_template(
 )
 def delete_template(
     template_id: str,
+    current_user: User = Depends(require_admin),
     service: TemplateService = Depends(get_template_service),
 ):
     success = service.delete(template_id)

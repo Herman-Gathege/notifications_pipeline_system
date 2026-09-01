@@ -1,4 +1,4 @@
-# Centralized Notification Platform
+# FikaTu — Centralized Notification Platform
 
 A scalable, provider-agnostic, event-driven notification platform designed to centralize communication services across multiple applications.
 
@@ -8,11 +8,11 @@ The platform enables client applications to publish events while delegating noti
 
 # Project Overview
 
-The Centralized Notification Platform serves as the single communication gateway for all applications within the ecosystem.
+FikaTu serves as the single communication gateway for all applications within the ecosystem.
 
 Instead of individual applications implementing their own Email, SMS, or WhatsApp integrations, they simply publish events to this platform.
 
-The platform is responsible for:
+FikaTu is responsible for:
 
 - Receiving notification events
 - Processing notifications asynchronously
@@ -27,8 +27,8 @@ The platform is responsible for:
 
 The initial release supports:
 
-- Email
-- SMS
+- Email (Resend, SMTP)
+- SMS (Africa's Talking)
 
 WhatsApp provider is planned. Future channels can easily be added without modifying existing business logic.
 
@@ -36,45 +36,45 @@ WhatsApp provider is planned. Future channels can easily be added without modify
 
 # Architecture
 
-The platform follows an event-driven architecture.
+FikaTu follows an event-driven architecture.
 
 ```text
                 Client Applications
 
- Rental Management
- CRM
- ERP
- HR
- School
- Hospital
-
-          │
-          │
-          ▼
-
-   Notification API
+  Rental Management
+  CRM
+  ERP
+  HR
+  School
+  Hospital
 
           │
 
           ▼
 
- Notification Engine
-
-          │
-
-     Redis Queue
+    FikaTu API
 
           │
 
           ▼
 
-     Worker Services
+  Notification Engine
 
           │
 
- ┌────────┼────────┬─────────┐
- │        │        │
- ▼        ▼        ▼
+      Redis Queue
+
+          │
+
+          ▼
+
+      Worker Services
+
+          │
+
+  ┌────────┼────────┬─────────┐
+  │        │        │
+  ▼        ▼        ▼
 
 Email     SMS    WhatsApp
 
@@ -82,7 +82,7 @@ Email     SMS    WhatsApp
 
           ▼
 
- External Providers
+External Providers
 ```
 
 Core architectural principles:
@@ -104,34 +104,40 @@ Core architectural principles:
 
 - Python 3.12
 - FastAPI
-- SQLAlchemy
+- SQLAlchemy 2.0
 - Alembic
 - PostgreSQL
 - Redis
 - Celery
-- Pydantic
-- PyJWT
-- Uvicorn
+- Pydantic v2
+- PyJWT / python-jose
+- passlib (bcrypt)
+- httpx
+- structlog
+- prometheus-client
 
 ## Frontend
 
-- React
-- Vite
-- TypeScript
+- React 19
+- Vite 8
+- TypeScript ~6.0
+- TanStack Table
+- React Router v6
+- shadcn/ui + Tailwind CSS
 
 ## Infrastructure
 
 - Docker
 - Docker Compose
-- Nginx
-- PostgreSQL
-- Redis
+- Nginx (reverse proxy)
+- PostgreSQL 17
+- Redis 7
 
 ## Monitoring
 
-- Prometheus (metrics endpoint at `/metrics`)
+- Prometheus metrics endpoint at `/metrics`
 - Grafana (planned)
-- OpenTelemetry (planned)
+- OpenAPI documentation at `/docs`
 
 ---
 
@@ -146,7 +152,7 @@ Before running the project ensure the following are installed:
 Recommended:
 
 - Visual Studio Code
-- Postman or Bruno
+- Bruno or Postman
 - DBeaver (Database Management)
 
 ---
@@ -156,9 +162,8 @@ Recommended:
 Clone the repository.
 
 ```bash
-https://github.com/Herman-Gathege/notifications_pipeline_system
+git clone https://github.com/Herman-Gathege/notifications_pipeline_system
 cd notification-platform
-ssh local-36
 ```
 
 Copy the example environment file.
@@ -173,42 +178,81 @@ Update environment variables as needed.
 
 # Running Locally
 
-Build and start all services.
+## Quick Start
+
+Build and start all services:
 
 ```bash
 docker compose up --build
 ```
 
-Run in detached mode.
+Run in detached mode:
 
 ```bash
 docker compose up -d
 ```
 
-Stop services.
+Stop services:
 
 ```bash
 docker compose down
 ```
 
-Rebuild containers.
+Rebuild containers:
 
 ```bash
 docker compose up --build --force-recreate
 ```
 
-start docker.
+## Service Endpoints
+
+| Service | URL |
+|---------|-----|
+| API | http://localhost:8001 |
+| Frontend | http://localhost:5173 |
+| Nginx | http://localhost:80 |
+| Swagger Docs | http://localhost:80/docs |
+| Prometheus Metrics | http://localhost:80/metrics |
+
+## Default Admin Credentials
+
+After the initial database migration, the admin account is seeded automatically using values from `.env`:
 
 ```bash
-sudo systemctl start docker
-docker exec -it notification-api bash
+# .env
+INITIAL_ADMIN_EMAIL=admin@notification-platform
+INITIAL_ADMIN_PASSWORD=admin123
 ```
 
-Check if port is open.
+Login at `http://localhost:80` or call the API directly:
 
 ```bash
-sudo lsof -i :5173
+curl -X POST http://localhost:80/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@notification-platform","password":"admin123"}'
 ```
+
+## Database Access
+
+```bash
+docker compose exec notification-postgres psql -U postgres -d notification_platform
+```
+
+## Running Tests
+
+```bash
+docker compose exec notification-api python -m pytest tests/ -v
+```
+
+## Viewing Logs
+
+```bash
+docker compose logs -f
+docker compose logs -f notification-api
+docker compose logs -f notification-worker
+```
+
+---
 
 # Docker
 
@@ -220,10 +264,10 @@ Current services include:
 |----------|---------|
 | nginx | Reverse Proxy |
 | api | FastAPI Backend |
-| frontend | React Starter (Vite) |
+| frontend | React (Vite) Frontend |
 | postgres | PostgreSQL Database |
 | redis | Queue Broker |
-| worker | Background Worker |
+| worker | Celery Background Worker |
 
 Future services:
 
@@ -232,28 +276,6 @@ Future services:
 - Mailhog
 
 > **Note:** `docker-compose.dev.yml`, `docker-compose.prod.yml`, and `Makefile` are currently empty placeholders.
-
-Start all containers.
-
-```bash
-docker compose up -d
-docker compose exec notification-api bash
-docker compose exec notification-postgres psql -U postgres -d notification_platform
-
-docker compose exec notification-api bash
-```
-
-View running containers.
-
-```bash
-docker ps
-```
-
-View logs.
-
-```bash
-docker compose logs -f
-```
 
 ---
 
@@ -268,7 +290,6 @@ notification-platform/
 ├── docs/
 ├── scripts/
 ├── .github/
-
 ├── docker-compose.yml
 ├── docker-compose.dev.yml  # empty placeholder
 ├── docker-compose.prod.yml # empty placeholder
@@ -280,8 +301,6 @@ notification-platform/
 ├── Makefile                # empty placeholder
 └── .gitignore
 ```
-
-> **Note:** `django` and `sendgrid` are listed in `requirements/base.txt` but are not currently used in the codebase.
 
 ---
 
@@ -343,14 +362,14 @@ The project follows a Git Flow-inspired branching strategy.
 main
 │
 └── develop
-      │
-      ├── feature/sprint-1-project-foundation
-      ├── feature/application-auth
-      ├── feature/event-processing
-      ├── feature/templates
-├── feature/sprint-5-provider-integrations
-├── feature/sprint-6-monitoring
-├── feature/admin-dashboard
+    │
+    ├── feature/sprint-1-project-foundation
+    ├── feature/application-auth
+    ├── feature/event-processing
+    ├── feature/templates
+    ├── feature/sprint-5-provider-integrations
+    ├── feature/sprint-6-monitoring
+    └── feature/admin-dashboard
 ```
 
 ## Branches
@@ -370,25 +389,9 @@ main
 
 Used for individual features or sprint tasks.
 
-Example:
-
-```text
-feature/sprint-3-events
-
-feature/provider-routing
-
-feature/whatsapp-provider
-```
-
 ### hotfix/*
 
 Production fixes.
-
-Example:
-
-```text
-hotfix/fix-health-endpoint
-```
 
 ---
 
@@ -400,6 +403,6 @@ This project is proprietary and intended for internal organizational use unless 
 
 # Maintainers
 
-Notification Platform Team
+FikaTu Team
 
 Version: 1.0.0

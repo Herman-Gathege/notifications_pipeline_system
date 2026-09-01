@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef } from "react"
 import axios from "axios"
 
-const API_BASE = import.meta.env.VITE_API_URL || "/api/v1"
+const rawBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8001"
+const API_BASE = rawBase.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
 
 interface ApiError {
   message: string
@@ -32,7 +33,7 @@ export function setToken(t: string | null): void {
 }
 
 const api = axios.create({
-  baseURL: API_BASE,
+  baseURL: `${API_BASE}/api/v1`,
 })
 
 api.interceptors.request.use((config) => {

@@ -9,12 +9,13 @@ BASE_DIR = Path(__file__).resolve().parents[3]
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "Notification Platform"
+    APP_NAME: str = "FikaTu"
     APP_VERSION: str = "1.0.0"
     APP_ENV: str = "production"
 
     DATABASE_URL: str
     SECRET_KEY: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     REDIS_URL: str
 
@@ -30,8 +31,14 @@ class Settings(BaseSettings):
     AFRICASTALKING_API_KEY: str = ""
     AFRICASTALKING_SENDER_ID: str | None = None
 
-    CORS_ORIGINS: list[str] = ["http://localhost"]
-
+    CORS_ORIGINS: list[str] = [
+        "http://localhost",
+        "http://172.16.1.36",
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:8001",
+    ]
+    
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
         extra="ignore",
