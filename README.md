@@ -192,6 +192,12 @@ Run in detached mode:
 docker compose up -d
 ```
 
+strt docker:
+
+```bash
+sudo systemctl start docker
+```
+
 Stop services:
 
 ```bash

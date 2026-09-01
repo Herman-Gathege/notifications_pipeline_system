@@ -270,7 +270,11 @@ class TestProviderResolver:
         assert isinstance(implementation, ResendProvider)
 
     def test_resolve_africa_stalking(self, mock_repository: MagicMock):
-        provider = make_provider(name="Africa's Talking", transport_type="api")
+        provider = make_provider(
+            name="Africa's Talking",
+            channel="sms",
+            transport_type="api",
+        )
         mock_repository.get_default_by_channel.return_value = provider
 
         resolver = ProviderResolver(mock_repository)

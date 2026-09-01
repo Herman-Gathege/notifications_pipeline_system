@@ -1,7 +1,9 @@
+# backend/app/services/provider_resolver.py
+
 from app.providers.email.resend_provider import ResendProvider
 from app.providers.smtp_provider import SMTPProvider
-from app.repositories.provider_repository import ProviderRepository
 from app.providers.sms.sms_provider import SMSProvider
+from app.repositories.provider_repository import ProviderRepository
 
 
 class ProviderResolver:
@@ -38,20 +40,23 @@ class ProviderResolver:
                 f"No active provider configured for '{channel}'."
             )
 
+        name = (provider.name or "").strip()
+        ch = (provider.channel or "").lower()
+
         if provider.transport_type == "smtp":
-            implementation = SMTPProvider(
-                provider,
-            )
+            implementation = SMTPProvider(provider)
 
         elif (
             provider.transport_type == "api"
-            and provider.name == "Resend"
+            and ch == "email"
+            and name == "Resend"
         ):
             implementation = ResendProvider()
 
         elif (
             provider.transport_type == "api"
-            and provider.name == "Africa's Talking"
+            and ch == "sms"
+            and name in ("Africa's Talking", "sms")
         ):
             implementation = SMSProvider()
 

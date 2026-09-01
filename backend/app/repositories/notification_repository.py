@@ -44,7 +44,6 @@ class NotificationRepository:
         self.db.commit()
         self.db.refresh(notification)
         return notification
-    
 
     def get_processed_older_than_days(
         self,
@@ -61,7 +60,7 @@ class NotificationRepository:
             .all()
         )
 
-    
+
     def delete_processed_older_than_days(
         self,
         days: int = 30,
@@ -76,8 +75,3 @@ class NotificationRepository:
             )
             .delete(synchronize_session=False)
         )
-
-    def update(self, notification: Notification) -> Notification:
-        self.db.commit()
-        self.db.refresh(notification)
-        return notification

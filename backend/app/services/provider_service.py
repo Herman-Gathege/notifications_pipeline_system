@@ -12,6 +12,7 @@ from app.schemas.provider import (
 )
 
 from app.providers.email.resend_provider import ResendProvider
+from app.providers.sms.sms_provider import SMSProvider
 
 from app.services.provider_resolver import ProviderResolver
 
@@ -116,33 +117,7 @@ class ProviderService:
                 detail="Provider is disabled.",
             )
 
-        if provider.transport_type == "smtp":
-
-            client = SMTPProvider(provider)
-
-        elif (
-            provider.transport_type == "api"
-            and provider.name == "Resend"
-        ):
-
-            client = ResendProvider()
-
-        elif (
-            provider.transport_type == "api"
-            and provider.name == "Africa's Talking"
-        ):
-
-            client = SMSProvider()
-
-        else:
-
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    f"Provider '{provider.name}' with transport type '{provider.transport_type}' has no supported implementation. Supported combinations: Resend (api), SMTP (smtp), Africa's Talking (api). "
-                    f"{provider.name}"
-                ),
-            )
+        client = self._instantiate_client(provider)
 
         return client.send(
             recipient=recipient,
@@ -150,6 +125,51 @@ class ProviderService:
             body=(
                 "Congratulations!\n\n"
                 "Your notification provider is configured correctly."
+            ),
+        )
+
+    def _instantiate_client(
+        self,
+        provider: Provider,
+    ) -> NotificationProvider:
+
+        channel = (provider.channel or "").lower()
+        name = (provider.name or "").strip()
+
+        if provider.transport_type == "smtp":
+            return SMTPProvider(provider)
+
+        if provider.transport_type == "api" and channel == "email":
+            if name == "Resend":
+                return ResendProvider()
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Provider '{provider.name}' with transport type "
+                    f"'{provider.transport_type}' has no supported "
+                    f"implementation."
+                ),
+            )
+
+        if provider.transport_type == "api" and channel == "sms":
+            if name in ("Africa's Talking", "sms"):
+                return SMSProvider()
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Provider '{provider.name}' with transport type "
+                    f"'{provider.transport_type}' has no supported "
+                    f"implementation."
+                ),
+            )
+
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Provider '{provider.name}' with channel "
+                f"'{provider.channel}' and transport type "
+                f"'{provider.transport_type}' has no supported "
+                f"implementation."
             ),
         )
 
