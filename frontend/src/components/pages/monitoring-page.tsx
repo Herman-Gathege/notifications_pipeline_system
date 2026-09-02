@@ -99,7 +99,7 @@ export default function MonitoringPage() {
                 ))}
               </div>
               {stats.notifications > 0 && (
-                <Card>
+                  <Card className="mt-6">
                   <CardHeader><CardTitle>Delivery Breakdown</CardTitle></CardHeader>
                   <CardContent>
                     <div className="space-y-2">
