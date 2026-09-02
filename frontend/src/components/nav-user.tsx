@@ -6,6 +6,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -79,24 +80,26 @@ export function NavUser({
             align="end"
             sideOffset={6}
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="size-9 ring-2 ring-[var(--brand-orange)]/30">
-                  {user.avatar && <AvatarImage src={user.avatar} alt={user.name} />}
-                  <AvatarFallback className="bg-black text-white font-semibold">{initials}</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    {user.email}
-                  </span>
-                  <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-none border border-black bg-[var(--brand-orange)]/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-orange)]">
-                    <ShieldCheckIcon className="size-3" />
-                    {roleBadge}
-                  </span>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <Avatar className="size-9 ring-2 ring-[var(--brand-orange)]/30">
+                    {user.avatar && <AvatarImage src={user.avatar} alt={user.name} />}
+                    <AvatarFallback className="bg-black text-white font-semibold">{initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">{user.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {user.email}
+                    </span>
+                    <span className="mt-1 inline-flex w-fit items-center gap-1 rounded-none border border-black bg-[var(--brand-orange)]/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-orange)]">
+                      <ShieldCheckIcon className="size-3" />
+                      {roleBadge}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </DropdownMenuLabel>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator className="bg-black/10" />
             <DropdownMenuItem className="rounded-none focus:bg-[var(--brand-orange)]/10">
               <CircleUserRoundIcon />
