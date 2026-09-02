@@ -1,8 +1,3 @@
-"use client"
-
-import * as React from "react"
-import { Link, useNavigate } from "react-router-dom"
-
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -10,8 +5,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-
-import { setToken } from "@/hooks/use-api"
+import { Link } from "react-router-dom"
 
 export function NavSecondary({
   items,
@@ -23,30 +17,16 @@ export function NavSecondary({
     icon: React.ReactNode
   }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
-  const navigate = useNavigate()
-
-  const handleLogout = () => {
-    setToken(null)
-    navigate("/")
-  }
-
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              {item.url === "#" ? (
-                <SidebarMenuButton onClick={handleLogout}>
-                  {item.icon}
-                  <span>{item.title}</span>
-                </SidebarMenuButton>
-              ) : (
-                <SidebarMenuButton render={<Link to={item.url} />}>
-                  {item.icon}
-                  <span>{item.title}</span>
-                </SidebarMenuButton>
-              )}
+              <SidebarMenuButton render={<Link to={item.url} />}>
+                {item.icon}
+                <span>{item.title}</span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

@@ -21,6 +21,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             "/api/v1/auth/login",
             "/api/v1/auth/register",
             "/api/v1/auth/validate",
+            "/api/v1/auth/logout",
         )
 
         if request.url.path in public_paths:

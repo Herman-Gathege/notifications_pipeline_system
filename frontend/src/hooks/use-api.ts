@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef } from "react"
-import axios from "axios"
+import { useCallback, useRef, useState } from "react"
+import axios, { type AxiosError, type AxiosInstance } from "axios"
 
 const rawBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8001"
 const API_BASE = rawBase.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
@@ -15,29 +15,27 @@ interface ApiState<T> {
   error: ApiError | null
 }
 
-let token: string | null = null
+type TokenGetter = () => string | null
+type LogoutHandler = () => void
+
+let tokenGetter: TokenGetter = () => null
+let logoutHandler: LogoutHandler = () => {}
+
+export function configureAuth(getter: TokenGetter, logout: LogoutHandler): void {
+  tokenGetter = getter
+  logoutHandler = logout
+}
 
 export function getToken(): string | null {
-  if (token) return token
-  token = localStorage.getItem("auth_token")
-  return token
+  return tokenGetter()
 }
 
-export function setToken(t: string | null): void {
-  token = t
-  if (t) {
-    localStorage.setItem("auth_token", t)
-  } else {
-    localStorage.removeItem("auth_token")
-  }
-}
-
-const api = axios.create({
+const api: AxiosInstance = axios.create({
   baseURL: `${API_BASE}/api/v1`,
 })
 
 api.interceptors.request.use((config) => {
-  const t = getToken()
+  const t = tokenGetter()
   if (t) {
     config.headers.Authorization = `Bearer ${t}`
   }
@@ -46,13 +44,21 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response) {
-      const detail = error.response.data?.detail
-      const message = typeof detail === "string" ? detail : "An error occurred"
-      throw { message, status: error.response.status }
+  (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      try {
+        logoutHandler()
+      } catch {
+        // ignore
+      }
     }
-    throw { message: "Network error", status: 0 }
+
+    if (error.response) {
+      const detail = error.response.data && (error.response.data as { detail?: unknown }).detail
+      const message = typeof detail === "string" ? detail : "An error occurred"
+      throw { message, status: error.response.status } as ApiError
+    }
+    throw { message: "Network error", status: 0 } as ApiError
   }
 )
 
@@ -67,7 +73,7 @@ export function useApi<T>() {
       data?: unknown
     ): Promise<T> => {
       stateRef.current = { data: null, loading: true, error: null }
-      setState(stateRef.current)
+      setState({ ...stateRef.current })
 
       try {
         const response = await api.request<T>({
@@ -76,12 +82,12 @@ export function useApi<T>() {
           data,
         })
         stateRef.current = { data: response.data, loading: false, error: null }
-        setState(stateRef.current)
+        setState({ ...stateRef.current })
         return response.data
       } catch (err) {
         const error = err as ApiError
         stateRef.current = { data: null, loading: false, error }
-        setState(stateRef.current)
+        setState({ ...stateRef.current })
         throw error
       }
     },
@@ -108,7 +114,15 @@ export function useApi<T>() {
     [request]
   )
 
-  return { get, post, patch, del, loading: stateRef.current.loading, error: stateRef.current.error, data: stateRef.current.data }
+  return {
+    get,
+    post,
+    patch,
+    del,
+    loading: stateRef.current.loading,
+    error: stateRef.current.error,
+    data: stateRef.current.data,
+  }
 }
 
 export { api }

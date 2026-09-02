@@ -1,7 +1,6 @@
 import * as React from "react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -21,7 +20,6 @@ import {
   BellIcon,
   BarChart3Icon,
   FileChartColumnIcon,
-  LogOutIcon,
   UsersIcon,
 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
@@ -69,14 +67,6 @@ const baseNavMain = [
   },
 ]
 
-const navSecondary = [
-  {
-    title: "Logout",
-    url: "#",
-    icon: <LogOutIcon />,
-  },
-]
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
 
@@ -95,30 +85,36 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         email: user.email,
       }
     : {
-        name: "Admin",
-        email: "admin@fikatu.com",
+        name: "Guest",
+        email: "Not signed in",
       }
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="border-b-2 border-black bg-white">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
+              className="data-[slot=sidebar-menu-button]:p-2!"
               render={<a href="/dashboard" />}
             >
-              <img src="/FikaTu-logo.png" alt="FikaTu" className="h-8 w-auto" />
-              <span className="text-base font-semibold">FikaTu</span>
+              <div className="flex h-9 w-9 items-center justify-center rounded-none border-2 border-black bg-[var(--brand-orange)] text-white shadow-[3px_3px_0_0_#000]">
+                <span className="text-sm font-black">FT</span>
+              </div>
+              <div className="flex flex-col leading-tight">
+                <span className="text-sm font-black uppercase tracking-tight text-black">FikaTu</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--brand-orange)]">
+                  Notifications
+                </span>
+              </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t-2 border-black bg-white">
         <NavUser user={currentUser} />
       </SidebarFooter>
     </Sidebar>

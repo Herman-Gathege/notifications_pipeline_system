@@ -3,7 +3,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_auth_service, get_db, get_user_service
+from app.api.security import get_current_user
+from app.models.user import User
 from app.schemas.auth import (
+    LogoutRequest,
+    LogoutResponse,
     TokenRequest,
     TokenResponse,
     UserLogin,
@@ -15,6 +19,7 @@ from app.schemas.auth import (
 from app.repositories.apikey_repository import APIKeyRepository
 from app.services.apikey_service import APIKeyService
 from app.services.authentication_service import AuthenticationService
+from app.schemas.user import UserResponse
 
 router = APIRouter(
     prefix="/auth",
@@ -139,3 +144,24 @@ def login(
         access_token=token_data["access_token"],
         user=token_data["user"],
     )
+
+
+@router.get("/me", response_model=UserResponse)
+def get_me(
+    current_user: User = Depends(get_current_user),
+):
+    return current_user
+
+
+@router.post("/logout", response_model=LogoutResponse)
+def logout(payload: LogoutRequest | None = None):
+    """
+    Stateless JWT logout endpoint.
+
+    Tokens issued by this service are currently self-contained and signed.
+    Server-side revocation is not yet implemented; clients must discard the
+    stored token after calling this endpoint. Once a revocation store is
+    added, the token provided in the request body (when supplied) will be
+    recorded as revoked.
+    """
+    return LogoutResponse(detail="Logged out. Please discard the access token on the client.")

@@ -14,15 +14,42 @@ import MonitoringPage from "@/components/pages/monitoring-page";
 import ReportsPage from "@/components/pages/reports-page";
 import UsersPage from "@/components/pages/users-page";
 
+function LoadingScreen() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-10 w-10 animate-spin rounded-none border-2 border-black border-t-[var(--brand-orange)]" />
+        <div className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+          Loading FikaTu
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token, loading } = useAuth()
 
   if (loading) {
-    return <div className="flex min-h-screen items-center justify-center">Loading...</div>
+    return <LoadingScreen />
   }
 
   if (!token) {
-    return <LoginPage />
+    return <Navigate to="/" replace />
+  }
+
+  return <>{children}</>
+}
+
+function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
+  const { token, loading } = useAuth()
+
+  if (loading) {
+    return <LoadingScreen />
+  }
+
+  if (token) {
+    return <Navigate to="/dashboard" replace />
   }
 
   return <>{children}</>
@@ -32,8 +59,22 @@ function App() {
   return (
     <AuthProvider>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/"
+          element={
+            <PublicOnlyRoute>
+              <LoginPage />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicOnlyRoute>
+              <RegisterPage />
+            </PublicOnlyRoute>
+          }
+        />
         <Route
           path="/dashboard"
           element={

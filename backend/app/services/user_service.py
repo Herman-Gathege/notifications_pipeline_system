@@ -8,7 +8,7 @@ from jose import jwt, JWTError
 from app.config.settings import settings
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
-from app.schemas.user import UserCreate, UserUpdate
+from app.schemas.user import ALLOWED_ROLES, UserCreate, UserUpdate
 
 
 def _hash_password(password: str) -> str:
@@ -29,11 +29,18 @@ class UserService:
         if existing:
             raise ValueError("User with this email already exists.")
 
+        role = data.role or "user"
+        if role not in ALLOWED_ROLES:
+            raise ValueError(f"Invalid role '{role}'. Must be one of: {', '.join(ALLOWED_ROLES)}.")
+
+        is_active = True if data.is_active is None else data.is_active
+
         user = User(
             email=data.email,
             hashed_password=_hash_password(data.password),
             name=data.name,
-            role="user",
+            role=role,
+            is_active=is_active,
         )
 
         return self.repository.create(user)
@@ -68,11 +75,22 @@ class UserService:
             user.name = data.name
 
         if data.role is not None:
+            if data.role not in ALLOWED_ROLES:
+                raise ValueError(f"Invalid role '{data.role}'. Must be one of: {', '.join(ALLOWED_ROLES)}.")
             user.role = data.role
 
         if data.is_active is not None:
             user.is_active = data.is_active
 
+        return self.repository.update(user)
+
+    def reset_password(self, user_id: str, new_password: str) -> User | None:
+        user = self.repository.get_by_id(user_id)
+
+        if user is None:
+            return None
+
+        user.hashed_password = _hash_password(new_password)
         return self.repository.update(user)
 
     def delete_user(self, user_id: str) -> bool:

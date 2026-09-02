@@ -36,3 +36,11 @@ class UserTokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: dict
+
+
+class LogoutRequest(BaseModel):
+    token: str | None = None
+
+
+class LogoutResponse(BaseModel):
+    detail: str

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,7 @@ const AUTH_BASE = API_BASE.endsWith("/api/v1") ? API_BASE : `${API_BASE}/api/v1`
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { login, token } = useAuth()
+  const { login } = useAuth()
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -22,12 +22,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [apiKey, setApiKey] = useState("")
   const [secret, setSecret] = useState("")
-
-  useEffect(() => {
-    if (token) {
-      navigate("/dashboard")
-    }
-  }, [token, navigate])
 
   const handleUserLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -106,25 +100,41 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/50">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--surface-2)] p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mb-4 flex justify-center">
-            <img src="/FikaTu-logo.png" alt="FikaTu" className="h-16 w-auto" />
+        <CardHeader className="space-y-3 border-b-2 border-black bg-black text-center text-white">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center border-2 border-[var(--brand-orange)] bg-[var(--brand-orange)] shadow-[4px_4px_0_0_#E65100]">
+            <span className="text-xl font-black text-white">FT</span>
           </div>
-          <CardTitle className="text-2xl">FikaTu</CardTitle>
-          <CardDescription>Sign in to manage notifications</CardDescription>
+          <div>
+            <CardTitle className="text-3xl font-black uppercase tracking-tight text-white">
+              FikaTu
+            </CardTitle>
+            <CardDescription className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--brand-orange)]">
+              Notification Platform
+            </CardDescription>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-5">
           <Tabs defaultValue="user" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="user">User</TabsTrigger>
-              <TabsTrigger value="api">API Key</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 rounded-none border-2 border-black bg-white">
+              <TabsTrigger
+                value="user"
+                className="rounded-none data-[state=active]:bg-[var(--brand-orange)] data-[state=active]:text-white font-bold"
+              >
+                User
+              </TabsTrigger>
+              <TabsTrigger
+                value="api"
+                className="rounded-none data-[state=active]:bg-[var(--brand-orange)] data-[state=active]:text-white font-bold"
+              >
+                API Key
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="user">
-              <form onSubmit={handleUserLogin} className="space-y-4">
+              <form onSubmit={handleUserLogin} className="space-y-4 pt-2">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="font-bold uppercase tracking-wide text-xs">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -135,7 +145,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="font-bold uppercase tracking-wide text-xs">Password</Label>
                   <Input
                     id="password"
                     type="password"
@@ -146,19 +156,19 @@ export default function LoginPage() {
                   />
                 </div>
                 {error && (
-                  <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                  <div className="border-2 border-[var(--destructive)] bg-[var(--destructive)]/10 p-3 text-sm font-semibold text-[var(--destructive)]">
                     {error}
                   </div>
                 )}
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full" size="lg" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
             </TabsContent>
             <TabsContent value="api">
-              <form onSubmit={handleApiKeyLogin} className="space-y-4">
+              <form onSubmit={handleApiKeyLogin} className="space-y-4 pt-2">
                 <div className="space-y-2">
-                  <Label htmlFor="api_key">API Key</Label>
+                  <Label htmlFor="api_key" className="font-bold uppercase tracking-wide text-xs">API Key</Label>
                   <Input
                     id="api_key"
                     type="text"
@@ -169,7 +179,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="secret">Secret</Label>
+                  <Label htmlFor="secret" className="font-bold uppercase tracking-wide text-xs">Secret</Label>
                   <Input
                     id="secret"
                     type="password"
@@ -180,11 +190,11 @@ export default function LoginPage() {
                   />
                 </div>
                 {error && (
-                  <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                  <div className="border-2 border-[var(--destructive)] bg-[var(--destructive)]/10 p-3 text-sm font-semibold text-[var(--destructive)]">
                     {error}
                   </div>
                 )}
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full" size="lg" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
