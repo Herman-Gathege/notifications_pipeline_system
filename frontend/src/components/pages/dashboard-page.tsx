@@ -89,11 +89,11 @@ export default function DashboardPage() {
       )}
 
       {stats && (
-        <Card>
-          <CardHeader>
+        <Card className="mt-6">
+          <CardHeader className="pb-2 px-6 pt-4">
             <CardTitle>Delivery Rate</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0 px-6 pb-4">
             {stats.notifications > 0 ? (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
