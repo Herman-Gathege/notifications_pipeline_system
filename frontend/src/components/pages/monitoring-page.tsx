@@ -122,12 +122,12 @@ export default function MonitoringPage() {
 
               {stats.notifications > 0 && (
                 <Card className="mt-6">
-                  <CardHeader className="pb-4">
+                  <CardHeader className="pb-6 px-6">
                     <CardTitle>Delivery Breakdown</CardTitle>
                   </CardHeader>
 
-                  <CardContent className="pt-0">
-                    <div className="space-y-3">
+                  <CardContent className="pt-2 px-6 pb-6">
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between text-sm">
                         <span>Delivered</span>
                         <Badge variant="default">
