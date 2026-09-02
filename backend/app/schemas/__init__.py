@@ -20,6 +20,7 @@ from .notification import (
 
 from .provider import (
     ProviderCreate,
+    ProviderPublicResponse,
     ProviderResponse,
     ProviderUpdate,
 )
@@ -56,6 +57,7 @@ __all__ = [
 
     # Providers
     "ProviderCreate",
+    "ProviderPublicResponse",
     "ProviderResponse",
     "ProviderUpdate",
 

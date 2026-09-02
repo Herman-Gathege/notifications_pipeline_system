@@ -127,7 +127,7 @@ class TestTemplateServiceUpdate:
         mock_repository.get_by_id.return_value = template
 
         data = TemplateUpdate(name="Updated", is_active=False)
-        result = service.update(template, data)
+        result = service.update(template.id, data)
 
         assert result.name == "Updated"
         assert result.is_active is False
@@ -138,7 +138,7 @@ class TestTemplateServiceUpdate:
         mock_repository.get_by_id.return_value = template
 
         data = TemplateUpdate(body="New body")
-        result = service.update(template, data)
+        result = service.update(template.id, data)
 
         assert result.body == "New body"
 
@@ -147,8 +147,9 @@ class TestTemplateServiceDelete:
 
     def test_delete_calls_repository(self, service: TemplateService, mock_repository: MagicMock):
         template = make_template()
+        mock_repository.get_by_id.return_value = template
 
-        service.delete(template)
+        service.delete(template.id)
 
         mock_repository.delete.assert_called_once_with(template)
 

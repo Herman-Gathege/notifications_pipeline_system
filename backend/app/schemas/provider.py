@@ -2,9 +2,7 @@
 from datetime import datetime
 from uuid import UUID
 
-
-    
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class ProviderBase(BaseModel):
@@ -48,12 +46,47 @@ class ProviderUpdate(BaseModel):
     from_name: str | None = None
 
 
-class ProviderResponse(ProviderBase):
+class ProviderPublicResponse(BaseModel):
+    """
+    Safe response schema for provider API endpoints.
+
+    Deliberately excludes smtp_password and any other credential material.
+    """
+
     id: UUID
+    name: str
+    channel: str
+
+    priority: int
+    is_active: bool
+
+    transport_type: str
+
+    smtp_host: str | None = None
+    smtp_port: int | None = None
+    smtp_username: str | None = None
+
+    use_tls: bool
+    use_ssl: bool
+
+    from_email: str | None = None
+    from_name: str | None = None
+
     created_at: datetime
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ProviderResponse(ProviderPublicResponse):
+    """Deprecated alias kept for backward compatibility.
+
+    Use ProviderPublicResponse for any externally visible responses.
+    This alias intentionally does NOT include smtp_password.
+    """
+
+    pass
+
 
 class ProviderTestRequest(BaseModel):
     recipient: str
