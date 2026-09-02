@@ -122,7 +122,7 @@ export default function MonitoringPage() {
 
               {stats.notifications > 0 && (
                 <Card className="mt-6">
-                  <CardHeader className="pb-6 px-6">
+                  <CardHeader className="pb-2 px-6 pt-4">
                     <CardTitle>Delivery Breakdown</CardTitle>
                   </CardHeader>
 
