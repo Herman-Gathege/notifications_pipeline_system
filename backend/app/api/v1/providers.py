@@ -5,7 +5,7 @@ from app.api.dependencies import get_provider_service
 from app.api.security import get_current_user, require_admin
 from app.schemas.provider import (
     ProviderCreate,
-    ProviderResponse,
+    ProviderPublicResponse,
     ProviderTestRequest,
     ProviderTestResponse,
     ProviderUpdate,
@@ -21,7 +21,7 @@ router = APIRouter(
 
 @router.post(
     "",
-    response_model=ProviderResponse,
+    response_model=ProviderPublicResponse,
     status_code=status.HTTP_201_CREATED,
 )
 def create_provider(
@@ -34,7 +34,7 @@ def create_provider(
 
 @router.get(
     "",
-    response_model=list[ProviderResponse],
+    response_model=list[ProviderPublicResponse],
 )
 def list_providers(
     current_user: User = Depends(get_current_user),
@@ -45,7 +45,7 @@ def list_providers(
 
 @router.patch(
     "/{provider_id}",
-    response_model=ProviderResponse,
+    response_model=ProviderPublicResponse,
 )
 def update_provider(
     provider_id: str,
@@ -67,17 +67,6 @@ def update_provider(
     return provider
 
 
-# @router.post(
-#     "/test",
-#     response_model=ProviderTestResponse,
-# )
-# def test_provider(
-#     data: ProviderTestRequest,
-#     service: ProviderService = Depends(get_provider_service),
-# ):
-#     return service.test_provider(data)
-
-
 @router.delete(
     "/{provider_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -96,6 +85,7 @@ def delete_provider(
         )
 
     return
+
 
 @router.post(
     "/{provider_id}/test",

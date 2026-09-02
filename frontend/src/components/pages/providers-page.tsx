@@ -96,6 +96,12 @@ export default function ProvidersPage() {
     setTestingId(id)
     setTestResult(null)
     try {
+      const provider = providers.find((p) => p.id === id)
+      const recipient =
+        provider?.channel === "sms"
+          ? import.meta.env.VITE_SMS_TEST_RECIPIENT || "+15555550123"
+          : "test@example.com"
+
       const token = localStorage.getItem("auth_token")
       const rawBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8001"
       const API_BASE = rawBase.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
@@ -105,7 +111,7 @@ export default function ProvidersPage() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ recipient: "test@example.com" }),
+        body: JSON.stringify({ recipient }),
       })
       const data = await response.json()
       setTestResult(data.success ? "Test sent successfully" : data.error || "Test failed")

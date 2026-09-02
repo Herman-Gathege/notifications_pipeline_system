@@ -47,9 +47,9 @@ interface EventCreateData {
   application_id?: string
 }
 
-const EVENT_TYPES = ["payment.success", "user.registered", "password.reset", "otp.requested"]
+const DEFAULT_EVENT_TYPES = ["payment.success", "user.registered", "password.reset", "otp.requested"]
 
-const EVENT_PAYLOAD_EXAMPLES: Record<string, string> = {
+const DEFAULT_EVENT_PAYLOAD_EXAMPLES: Record<string, string> = {
   "payment.success": JSON.stringify({ customer: "Alice", email: "alice@example.com", phone: "+254700000000", amount: "KES 5,250" }, null, 2),
   "user.registered": JSON.stringify({ name: "Bob", email: "bob@example.com" }, null, 2),
   "password.reset": JSON.stringify({ email: "alice@example.com" }, null, 2),
@@ -63,13 +63,45 @@ export default function EventsPage() {
   const [error, setError] = useState("")
   const [publishOpen, setPublishOpen] = useState(false)
   const [publishData, setPublishData] = useState<EventCreateData>({
-    event_type: EVENT_TYPES[0],
-    payload: EVENT_PAYLOAD_EXAMPLES["payment.success"],
+    event_type: DEFAULT_EVENT_TYPES[0],
+    payload: DEFAULT_EVENT_PAYLOAD_EXAMPLES["payment.success"],
     channels: "email",
   })
   const [publishResult, setPublishResult] = useState<string | null>(null)
   const [applications, setApplications] = useState<Application[]>([])
   const [selectedAppId, setSelectedAppId] = useState<string>("")
+  const [eventTypes, setEventTypes] = useState<string[]>([])
+
+  const fetchEventTypes = async () => {
+    try {
+      const token = localStorage.getItem("auth_token")
+      if (!token) return
+
+      const rawBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8001"
+      const API_BASE = rawBase.replace(/\/api\/v1\/?$/, "").replace(/\/$/, "")
+      const response = await fetch(`${API_BASE}/api/v1/templates/event-types`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (response.ok) {
+        const data = await response.json()
+        if (Array.isArray(data) && data.length > 0) {
+          setEventTypes(data)
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const effectiveEventTypes = eventTypes.length > 0 ? eventTypes : DEFAULT_EVENT_TYPES
+  const effectivePayloadExamples = eventTypes.length > 0
+    ? Object.fromEntries(
+        eventTypes.map((et) => [
+          et,
+          DEFAULT_EVENT_PAYLOAD_EXAMPLES[et] || JSON.stringify({ data: "{}" }, null, 2),
+        ])
+      )
+    : DEFAULT_EVENT_PAYLOAD_EXAMPLES
 
   const fetchEvents = async () => {
     try {
@@ -109,6 +141,7 @@ export default function EventsPage() {
   useEffect(() => {
     fetchEvents()
     fetchApplications()
+    fetchEventTypes()
   }, [])
 
   const handlePublish = async (e: React.FormEvent) => {
@@ -123,7 +156,7 @@ export default function EventsPage() {
       }
       await post("/events", body)
       setPublishResult("Event published successfully!")
-      setPublishData({ event_type: EVENT_TYPES[0], payload: EVENT_PAYLOAD_EXAMPLES["payment.success"], channels: "email" })
+      setPublishData({ event_type: effectiveEventTypes[0], payload: effectivePayloadExamples[effectiveEventTypes[0]] || '{}', channels: "email" })
       setPublishOpen(false)
       fetchEvents()
     } catch (err) {
@@ -158,16 +191,16 @@ export default function EventsPage() {
               <div className="space-y-2">
                 <Label htmlFor="event-type">Event Type</Label>
                  <Select value={publishData.event_type} onValueChange={(v) => {
-                       if (!v) return
-                       setPublishData({ ...publishData, event_type: v, payload: EVENT_PAYLOAD_EXAMPLES[v] || '{}' })
-                     }}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {EVENT_TYPES.map((et) => (
-                      <SelectItem key={et} value={et}>{et}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                        if (!v) return
+                        setPublishData({ ...publishData, event_type: v, payload: effectivePayloadExamples[v] || '{}' })
+                      }}>
+                   <SelectTrigger><SelectValue /></SelectTrigger>
+                   <SelectContent>
+                     {effectiveEventTypes.map((et) => (
+                       <SelectItem key={et} value={et}>{et}</SelectItem>
+                     ))}
+                   </SelectContent>
+                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="event-payload">Payload (JSON)</Label>
@@ -252,21 +285,21 @@ export default function EventsPage() {
             </TabsList>
             <TabsContent value="email">
               <pre className="text-xs bg-muted p-3 rounded-md">{`{
-  "event_type": "payment.success",
+  "event_type": "${effectiveEventTypes[0]}",
   "payload": { "customer": "Alice", "email": "alice@example.com", "phone": "+254700000000", "amount": "KES 5,250" },
   "channels": ["email"]
 }`}</pre>
             </TabsContent>
             <TabsContent value="sms">
               <pre className="text-xs bg-muted p-3 rounded-md">{`{
-  "event_type": "otp.requested",
+  "event_type": "${effectiveEventTypes[0]}",
   "payload": { "phone": "+254700000000", "otp": "123456" },
   "channels": ["sms"]
 }`}</pre>
             </TabsContent>
             <TabsContent value="all">
               <pre className="text-xs bg-muted p-3 rounded-md">{`{
-  "event_type": "user.registered",
+  "event_type": "${effectiveEventTypes[0]}",
   "payload": { "name": "Bob", "email": "bob@example.com" },
   "channels": ["email", "sms"]
 }`}</pre>
