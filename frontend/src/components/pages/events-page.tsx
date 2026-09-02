@@ -275,7 +275,7 @@ export default function EventsPage() {
       )}
 
       <Card>
-        <CardHeader><CardTitle>Quick Publish</CardTitle><CardDescription>Use the button above to publish events. Example payloads are pre-filled.</CardDescription></CardHeader>
+        <CardHeader className="pb-2 px-6 pt-4"><CardTitle>Quick Publish</CardTitle><CardDescription>Use the button above to publish events. Example payloads are pre-filled.</CardDescription></CardHeader>
         <CardContent>
           <Tabs defaultValue="email">
             <TabsList>
