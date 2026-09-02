@@ -98,7 +98,7 @@ export default function MonitoringPage() {
                   </Card>
                 ))}
               </div>
-              {stats.notifications > 0 && (
+              {/* {stats.notifications > 0 && (
                   <Card className="mt-6">
                   <CardHeader><CardTitle>Delivery Breakdown</CardTitle></CardHeader>
                   <CardContent>
@@ -114,6 +114,39 @@ export default function MonitoringPage() {
                       <div className="flex items-center justify-between text-sm">
                         <span>Dead Letter</span>
                         <Badge variant="outline">{((stats.dead_letter / stats.notifications) * 100).toFixed(1)}%</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )} */}
+
+              {stats.notifications > 0 && (
+                <Card className="mt-6">
+                  <CardHeader className="pb-4">
+                    <CardTitle>Delivery Breakdown</CardTitle>
+                  </CardHeader>
+
+                  <CardContent className="pt-0">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span>Delivered</span>
+                        <Badge variant="default">
+                          {((stats.delivered / stats.notifications) * 100).toFixed(1)}%
+                        </Badge>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <span>Failed</span>
+                        <Badge variant="destructive">
+                          {((stats.failed / stats.notifications) * 100).toFixed(1)}%
+                        </Badge>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <span>Dead Letter</span>
+                        <Badge variant="outline">
+                          {((stats.dead_letter / stats.notifications) * 100).toFixed(1)}%
+                        </Badge>
                       </div>
                     </div>
                   </CardContent>
