@@ -1,28 +1,49 @@
 # backend/app/providers/sms/sms_provider.py
 
-import requests
-
-class _NoSSLVerifySession(requests.Session):
-    trust_env = False
-    verify = False
-
-requests.Session = _NoSSLVerifySession
-
 import africastalking
 
 from app.config.settings import settings
 from app.providers.base import NotificationProvider
 
 
-africastalking.initialize(
-    settings.AFRICASTALKING_USERNAME,
-    settings.AFRICASTALKING_API_KEY,
-)
-
-sms = africastalking.SMS
+# Module-level handle to the Africa's Talking SDK client.  Intentionally
+# left as ``None`` at import time so that the SDK is initialized lazily
+# inside ``SMSProvider.__init__`` — this is required to keep SSL state
+# fork-safe in the Celery worker.
+sms = None
 
 
 class SMSProvider(NotificationProvider):
+
+    def __init__(self) -> None:
+        # IMPORTANT: initialize the Africa's Talking SDK *per instance*
+        # rather than at module import time.
+        #
+        # The SDK creates an internal urllib3 HTTPSConnectionPool with a
+        # cached ssl.SSLContext.  That context is not fork-safe: when the
+        # Celery main process pre-initializes the SDK at import time and
+        # then forks worker children, the children inherit a broken
+        # SSLContext and the first HTTPS call to Africa's Talking
+        # surfaces as:
+        #
+        #     ssl.SSLError: [SSL: WRONG_VERSION_NUMBER] wrong version number
+        #
+        # Initializing lazily here means every forked worker child
+        # constructs a fresh SDK instance with a fresh SSL context on
+        # first use.
+        #
+        # The module-level ``sms`` attribute remains as a seam for
+        # tests that inject a mock SDK client.  When a non-None mock is
+        # already present (test scenario), use it; otherwise initialize
+        # a real SDK client for this process.
+        global sms
+        if sms is None:
+            africastalking.initialize(
+                settings.AFRICASTALKING_USERNAME,
+                settings.AFRICASTALKING_API_KEY,
+            )
+            sms = africastalking.SMS
+        self._sms = sms
 
     def send(
         self,
@@ -34,7 +55,7 @@ class SMSProvider(NotificationProvider):
 
         try:
 
-            response = sms.send(
+            response = self._sms.send(
                 body,
                 [recipient],
                 sender_id=settings.AFRICASTALKING_SENDER_ID or None,
