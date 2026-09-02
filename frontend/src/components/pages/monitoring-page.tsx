@@ -126,7 +126,7 @@ export default function MonitoringPage() {
                     <CardTitle>Delivery Breakdown</CardTitle>
                   </CardHeader>
 
-                  <CardContent className="pt-2 px-6 pb-6">
+                  <CardContent className="pt-0 px-6 pb-4">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between text-sm">
                         <span>Delivered</span>
