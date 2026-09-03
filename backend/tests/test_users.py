@@ -240,15 +240,15 @@ class TestPasswordResetSchema:
 
 class TestUserResponseDoesNotLeakPassword:
     def test_response_excludes_hashed_password(self):
-        from datetime import datetime, UTC
+        from datetime import datetime, timezone
         from uuid import UUID
 
         from app.schemas.user import UserResponse
 
         user = make_user(
             id=str(UUID(int=0x12345678123456781234567812345678)),
-            created_at=datetime.now(UTC),
-            updated_at=datetime.now(UTC),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         )
 
         resp = UserResponse.model_validate(user)

@@ -1,7 +1,7 @@
 # backend/app/services/user_service.py
 import bcrypt
 
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, timezone
 
 from jose import jwt, JWTError
 
@@ -108,7 +108,7 @@ class UserService:
             "type": "user",
             "role": user.role,
             "email": user.email,
-            "exp": datetime.now(UTC) + timedelta(hours=24),
+            "exp": datetime.now(timezone.utc) + timedelta(hours=24),
         }
 
         return jwt.encode(

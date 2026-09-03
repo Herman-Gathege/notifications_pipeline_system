@@ -1,5 +1,5 @@
 # #backend/app/services/apikey_service.py
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from secrets import token_hex
 
@@ -15,7 +15,7 @@ class APIKeyService:
         api_key = APIKey(
             application_id=application_id,
             token=token_hex(32),
-            expires_at=datetime.now(UTC) + timedelta(days=365),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=365),
         )
 
         return self.repository.create(api_key)
@@ -39,11 +39,11 @@ class APIKeyService:
 
         if (
             api_key.expires_at is not None
-            and api_key.expires_at < datetime.now(UTC)
+            and api_key.expires_at < datetime.now(timezone.utc)
         ):
             return None
 
-        api_key.last_used = datetime.now(UTC)
+        api_key.last_used = datetime.now(timezone.utc)
         self.update(api_key)
 
         return api_key.application

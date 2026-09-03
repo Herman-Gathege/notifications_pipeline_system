@@ -1,5 +1,5 @@
 # backend/app/services/authentication_service.py
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, timezone
 
 from jose import jwt, JWTError
 
@@ -27,7 +27,7 @@ class AuthenticationService:
             "sub": str(application.id),
             "app": application.name,
             "type": "application",
-            "exp": datetime.now(UTC) + timedelta(hours=24),
+            "exp": datetime.now(timezone.utc) + timedelta(hours=24),
         }
 
         return jwt.encode(

@@ -1,7 +1,7 @@
 # backend/app/repositories/notification_repository.py
 from __future__ import annotations
 
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -49,7 +49,7 @@ class NotificationRepository:
         self,
         days: int = 30,
     ):
-        cutoff = datetime.now(UTC) - timedelta(days=days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
         return (
             self.db.query(Notification)
@@ -65,7 +65,7 @@ class NotificationRepository:
         self,
         days: int = 30,
     ):
-        cutoff = datetime.now(UTC) - timedelta(days=days)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
         return (
             self.db.query(Notification)

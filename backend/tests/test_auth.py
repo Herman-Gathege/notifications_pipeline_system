@@ -54,12 +54,12 @@ class TestApplicationToken:
 
 class TestValidateToken:
     def test_valid_token_returns_payload(self, auth_service):
-        from datetime import datetime, timedelta, UTC
+        from datetime import datetime, timedelta, timezone
         from jose import jwt
         from app.config.settings import settings
 
         token = jwt.encode(
-            {"sub": "abc", "type": "user", "exp": datetime.now(UTC) + timedelta(hours=1)},
+            {"sub": "abc", "type": "user", "exp": datetime.now(timezone.utc) + timedelta(hours=1)},
             settings.SECRET_KEY,
             algorithm="HS256",
         )
@@ -74,12 +74,12 @@ class TestValidateToken:
         assert auth_service.validate_token("not.a.token") is None
 
     def test_expired_token_returns_none(self, auth_service):
-        from datetime import datetime, timedelta, UTC
+        from datetime import datetime, timedelta, timezone
         from jose import jwt
         from app.config.settings import settings
 
         token = jwt.encode(
-            {"sub": "abc", "type": "user", "exp": datetime.now(UTC) - timedelta(hours=1)},
+            {"sub": "abc", "type": "user", "exp": datetime.now(timezone.utc) - timedelta(hours=1)},
             settings.SECRET_KEY,
             algorithm="HS256",
         )
@@ -104,7 +104,7 @@ class TestRegisterUser:
 
 class TestLoginUser:
     def test_returns_token_and_user_data(self, auth_service, user_service):
-        from datetime import datetime, UTC
+        from datetime import datetime, timezone
 
         user = MagicMock()
         user.id = "abc"
@@ -112,8 +112,8 @@ class TestLoginUser:
         user.name = "Alice"
         user.role = "user"
         user.is_active = True
-        user.created_at = datetime.now(UTC)
-        user.updated_at = datetime.now(UTC)
+        user.created_at = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(timezone.utc)
 
         user_service.authenticate.return_value = user
         user_service.create_access_token.return_value = "signed.token"
@@ -139,7 +139,7 @@ class TestLoginUser:
 
 class TestPasswordNotInToken:
     def test_password_field_is_not_in_token(self, auth_service, user_service):
-        from datetime import datetime, UTC
+        from datetime import datetime, timezone
 
         user = MagicMock()
         user.id = "abc"
@@ -147,8 +147,8 @@ class TestPasswordNotInToken:
         user.name = "Alice"
         user.role = "user"
         user.is_active = True
-        user.created_at = datetime.now(UTC)
-        user.updated_at = datetime.now(UTC)
+        user.created_at = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(timezone.utc)
 
         user_service.authenticate.return_value = user
         user_service.create_access_token.return_value = "signed.token"

@@ -1,7 +1,7 @@
 # backend/app/services/report_service.py
 
 
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 from app.models.notification_report import NotificationReport
@@ -15,7 +15,7 @@ class ReportService:
         self.repository = repository
 
     def generate_report(self, user: User):
-        period_end = datetime.now(UTC)
+        period_end = datetime.now(timezone.utc)
         period_start = period_end - timedelta(days=30)
 
         owner_id = None if user.role == "admin" else user.id
