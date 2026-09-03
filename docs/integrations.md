@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide explains how to connect an internal application to FikaTu.
+This guide explains how to connect an internal application to FikaTu. For the canonical integration contract, see [`docs/integration/api-contract.md`](./integration/api-contract.md). For the complete integration guide with examples, see [`docs/integration/integration-guide.md`](./integration/integration-guide.md).
 
 ## Prerequisites
 

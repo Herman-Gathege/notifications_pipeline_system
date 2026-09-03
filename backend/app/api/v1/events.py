@@ -1,17 +1,15 @@
 # backend/app/api/v1/events.py
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
+from app.api.dependencies import get_authentication_service
 from app.api.security import get_current_user
-from jose import jwt, JWTError
-
 from app.database.session import get_db
+from app.repositories.application_repository import ApplicationRepository
 from app.repositories.event_repository import EventRepository
 from app.repositories.notification_repository import NotificationRepository
-from app.repositories.application_repository import ApplicationRepository
 from app.schemas.event import EventCreate, EventResponse
 from app.services.event_service import EventService
 from app.models.user import User
-from app.config.settings import settings
 
 router = APIRouter(
     prefix="/events",
@@ -29,6 +27,10 @@ def get_event_service(db: Session = Depends(get_db)) -> EventService:
     )
 
 
+def get_auth_service(db: Session = Depends(get_db)):
+    return get_authentication_service(db)
+
+
 @router.post(
     "",
     response_model=EventResponse,
@@ -39,16 +41,13 @@ def create_event(
     authorization: str = Header(...),
     db: Session = Depends(get_db),
     service: EventService = Depends(get_event_service),
+    auth_service = Depends(get_auth_service),
 ):
     token = authorization.replace("Bearer ", "")
     
-    try:
-        token_payload = jwt.decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=["HS256"],
-        )
-    except JWTError:
+    token_payload = auth_service.validate_token(token)
+    
+    if token_payload is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="The provided token is invalid or has expired. Please obtain a new token.",
