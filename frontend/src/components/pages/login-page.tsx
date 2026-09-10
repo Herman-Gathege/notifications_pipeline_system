@@ -1,8 +1,11 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { AlertTriangleIcon } from "lucide-react"
+
+import { Field } from "@/components/page-kit"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DevBadge } from "@/components/dev-badge"
@@ -101,108 +104,163 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--surface-2)] p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-3 border-b-2 border-black bg-black text-center text-white">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center border-2 border-[var(--brand-orange)] bg-[var(--brand-orange)] shadow-[4px_4px_0_0_#E65100]">
-            <span className="text-xl font-black text-white">FT</span>
+    <div className="flex min-h-screen bg-surface-0">
+      {/* Brand panel — desktop only */}
+      <aside className="relative hidden w-[44%] max-w-xl flex-col justify-between border-r-2 border-[var(--ink)] bg-[var(--ink)] p-10 text-white lg:flex xl:p-14">
+        <div className="flex items-center gap-3">
+          <div className="flex size-11 items-center justify-center border-2 border-[var(--brand-orange)] bg-[var(--brand-orange)] text-white">
+            <span className="text-lg font-black tracking-tight">FT</span>
           </div>
-          <div>
-            <CardTitle className="text-3xl font-black uppercase tracking-tight text-white">
+          <div className="flex flex-col leading-tight">
+            <span className="text-base font-black uppercase tracking-tight">
               FikaTu
-            </CardTitle>
-            <CardDescription className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--brand-orange)]">
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--brand-orange)]">
               Notification Platform
-            </CardDescription>
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="max-w-md text-3xl leading-[1.1] font-black tracking-[-0.02em] xl:text-[38px]">
+            Route every event to the right channel.
+          </h2>
+          <p className="mt-5 max-w-md text-sm leading-relaxed text-white/70">
+            Email, SMS and WhatsApp delivery with per-provider failover,
+            reusable templates and delivery reporting.
+          </p>
+          <ul className="mt-9 flex flex-col gap-3.5">
+            {[
+              "Provider-agnostic routing",
+              "Event-driven delivery pipeline",
+              "Retries, dead letters and reports",
+            ].map((item) => (
+              <li key={item} className="flex items-center gap-3 text-sm">
+                <span
+                  aria-hidden="true"
+                  className="size-2.5 shrink-0 bg-[var(--brand-orange)]"
+                />
+                <span className="text-white/90">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+      </aside>
+
+      <main className="flex flex-1 items-center justify-center px-4 pt-10 pb-24 sm:px-8">
+        <div className="w-full max-w-md">
+      <Card>
+        <CardHeader className="border-b-2 border-[var(--ink)]">
+          <div className="flex items-center gap-3">
+            <div className="flex size-11 shrink-0 items-center justify-center border-2 border-[var(--ink)] bg-[var(--brand-orange)] text-white shadow-[var(--shadow-brutal-xs)]">
+              <span className="text-lg font-black tracking-tight">FT</span>
+            </div>
+            <div className="min-w-0">
+              <CardTitle className="text-xl">Sign in</CardTitle>
+              <CardDescription>
+                Use your account or an API key.
+              </CardDescription>
+            </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-5">
+        <CardContent>
           <Tabs defaultValue="user" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 rounded-none border-2 border-black bg-white">
-              <TabsTrigger
-                value="user"
-                className="rounded-none data-[state=active]:bg-[var(--brand-orange)] data-[state=active]:text-white font-bold"
-              >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="user">
                 User
               </TabsTrigger>
-              <TabsTrigger
-                value="api"
-                className="rounded-none data-[state=active]:bg-[var(--brand-orange)] data-[state=active]:text-white font-bold"
-              >
+              <TabsTrigger value="api">
                 API Key
               </TabsTrigger>
             </TabsList>
             <TabsContent value="user">
-              <form onSubmit={handleUserLogin} className="space-y-4 pt-2">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="font-bold uppercase tracking-wide text-xs">Email</Label>
+              <form onSubmit={handleUserLogin} className="flex flex-col gap-5 pt-1">
+                <Field label="Email" htmlFor="email">
                   <Input
                     id="email"
                     type="email"
+                    autoComplete="email"
                     placeholder="admin@fikatu.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="font-bold uppercase tracking-wide text-xs">Password</Label>
+                </Field>
+                <Field label="Password" htmlFor="password">
                   <Input
                     id="password"
                     type="password"
+                    autoComplete="current-password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
-                </div>
+                </Field>
                 {error && (
-                  <div className="border-2 border-[var(--destructive)] bg-[var(--destructive)]/10 p-3 text-sm font-semibold text-[var(--destructive)]">
-                    {error}
-                  </div>
+                  <Alert variant="destructive">
+                    <AlertTriangleIcon />
+                    <AlertTitle>Sign-in failed</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
                 )}
                 <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                  {loading ? "Signing in..." : "Sign In"}
+                  {loading ? "Signing in…" : "Sign in"}
                 </Button>
               </form>
             </TabsContent>
             <TabsContent value="api">
-              <form onSubmit={handleApiKeyLogin} className="space-y-4 pt-2">
-                <div className="space-y-2">
-                  <Label htmlFor="api_key" className="font-bold uppercase tracking-wide text-xs">API Key</Label>
+              <form onSubmit={handleApiKeyLogin} className="flex flex-col gap-5 pt-1">
+                <Field label="API key" htmlFor="api_key">
                   <Input
                     id="api_key"
                     type="text"
+                    autoComplete="off"
                     placeholder="Enter your API key"
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
                     required
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="secret" className="font-bold uppercase tracking-wide text-xs">Secret</Label>
+                </Field>
+                <Field label="Secret" htmlFor="secret">
                   <Input
                     id="secret"
                     type="password"
+                    autoComplete="off"
                     placeholder="Enter your secret"
                     value={secret}
                     onChange={(e) => setSecret(e.target.value)}
                     required
                   />
-                </div>
+                </Field>
                 {error && (
-                  <div className="border-2 border-[var(--destructive)] bg-[var(--destructive)]/10 p-3 text-sm font-semibold text-[var(--destructive)]">
-                    {error}
-                  </div>
+                  <Alert variant="destructive">
+                    <AlertTriangleIcon />
+                    <AlertTitle>Sign-in failed</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
                 )}
                 <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                  {loading ? "Signing in..." : "Sign In"}
+                  {loading ? "Signing in…" : "Sign in"}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
+
+          <p className="mt-6 border-t-2 border-[var(--border-soft)] pt-4 text-center text-sm text-[var(--ink-muted)]">
+            Need an account?{" "}
+            <Link
+              to="/register"
+              className="font-bold text-[var(--brand-orange)] underline decoration-2 underline-offset-4 hover:text-[var(--brand-orange-hover)]"
+            >
+              Create one
+            </Link>
+          </p>
         </CardContent>
       </Card>
+        </div>
+      </main>
       <DevBadge />
     </div>
   )

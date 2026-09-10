@@ -16,12 +16,16 @@ import UsersPage from "@/components/pages/users-page";
 
 function LoadingScreen() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-10 w-10 animate-spin rounded-none border-2 border-black border-t-[var(--brand-orange)]" />
-        <div className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex min-h-screen items-center justify-center bg-surface-0"
+    >
+      <div className="flex flex-col items-center gap-4">
+        <div className="size-10 animate-spin rounded-none border-2 border-[var(--border-mid)] border-t-[var(--brand-orange)]" />
+        <span className="text-[11px] font-black uppercase tracking-[0.16em] text-[var(--ink-muted)]">
           Loading FikaTu
-        </div>
+        </span>
       </div>
     </div>
   )

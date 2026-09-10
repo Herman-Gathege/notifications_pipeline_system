@@ -1,12 +1,23 @@
 import { useState, useEffect } from "react"
+import { CheckCircle2Icon, SendIcon } from "lucide-react"
+
+import {
+  EmptyRow,
+  ErrorState,
+  Field,
+  formatTimestamp,
+  Page,
+  PageHeader,
+  TableSkeleton,
+} from "@/components/page-kit"
 import { useApi } from "@/hooks/use-api"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -175,79 +186,100 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Events</h1>
-        <Dialog open={publishOpen} onOpenChange={setPublishOpen}>
-          <DialogTrigger render={<Button />}>
-            Publish Event
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Publish Event</DialogTitle>
-              <DialogDescription>Send a new event to the notification pipeline.</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handlePublish} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="event-type">Event Type</Label>
-                 <Select value={publishData.event_type} onValueChange={(v) => {
+    <Page>
+      <PageHeader
+        title="Events"
+        description="Publish domain events and follow them through the pipeline."
+        actions={
+          <Dialog open={publishOpen} onOpenChange={setPublishOpen}>
+            <DialogTrigger render={<Button />}>
+              <SendIcon />
+              Publish event
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Publish event</DialogTitle>
+                <DialogDescription>
+                  Send a new event to the notification pipeline.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handlePublish} className="flex flex-col gap-5">
+                <Field label="Event type" htmlFor="event-type">
+                  <Select value={publishData.event_type} onValueChange={(v) => {
                         if (!v) return
                         setPublishData({ ...publishData, event_type: v, payload: effectivePayloadExamples[v] || '{}' })
                       }}>
-                   <SelectTrigger><SelectValue /></SelectTrigger>
-                   <SelectContent>
-                     {effectiveEventTypes.map((et) => (
-                       <SelectItem key={et} value={et}>{et}</SelectItem>
-                     ))}
-                   </SelectContent>
-                 </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="event-payload">Payload (JSON)</Label>
-                <Textarea id="event-payload" value={publishData.payload} onChange={(e) => setPublishData({ ...publishData, payload: e.target.value })} rows={5} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="event-channels">Channels (comma-separated)</Label>
-                <Input id="event-channels" value={publishData.channels} onChange={(e) => setPublishData({ ...publishData, channels: e.target.value })} placeholder="email, sms" required />
-              </div>
-              {applications.length > 0 && (
-                <div className="space-y-2">
-                  <Label htmlFor="event-application">Application</Label>
-                  <Select value={selectedAppId} onValueChange={(v) => {
-                        if (!v) return
-                        setSelectedAppId(v)
-                      }}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="event-type"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {applications.map((app) => (
-                        <SelectItem key={app.id} value={app.id}>{app.name}</SelectItem>
+                      {effectiveEventTypes.map((et) => (
+                        <SelectItem key={et} value={et}>{et}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-              )}
-              <DialogFooter>
-                <Button type="submit">Publish</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+                </Field>
+                <Field label="Payload (JSON)" htmlFor="event-payload">
+                  <Textarea
+                    id="event-payload"
+                    value={publishData.payload}
+                    onChange={(e) => setPublishData({ ...publishData, payload: e.target.value })}
+                    rows={6}
+                    spellCheck={false}
+                    className="font-mono text-xs"
+                    required
+                  />
+                </Field>
+                <Field
+                  label="Channels"
+                  htmlFor="event-channels"
+                  hint="Comma-separated, for example email, sms."
+                >
+                  <Input
+                    id="event-channels"
+                    value={publishData.channels}
+                    onChange={(e) => setPublishData({ ...publishData, channels: e.target.value })}
+                    placeholder="email, sms"
+                    required
+                  />
+                </Field>
+                {applications.length > 0 && (
+                  <Field label="Application" htmlFor="event-application">
+                    <Select value={selectedAppId} onValueChange={(v) => {
+                          if (!v) return
+                          setSelectedAppId(v)
+                        }}>
+                      <SelectTrigger id="event-application"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {applications.map((app) => (
+                          <SelectItem key={app.id} value={app.id}>{app.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setPublishOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">Publish</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
-      {error && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
-      )}
+      {error ? <ErrorState message={error} onRetry={fetchEvents} /> : null}
 
       {publishResult && (
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="p-3">
-            <p className="text-sm text-green-800"><strong>Success:</strong> {publishResult}</p>
-          </CardContent>
-        </Card>
+        <Alert variant="success">
+          <CheckCircle2Icon />
+          <AlertTitle>Event published</AlertTitle>
+          <AlertDescription>{publishResult}</AlertDescription>
+        </Alert>
       )}
 
       {loading ? (
-        <Card><CardContent className="p-4"><div className="h-8 w-full animate-pulse rounded bg-muted" /></CardContent></Card>
+        <TableSkeleton columns={4} label="Loading events" />
       ) : (
         <Card>
           <Table>
@@ -263,19 +295,51 @@ export default function EventsPage() {
               {events.map((event) => (
                 <TableRow key={event.id}>
                   <TableCell className="font-mono text-xs">{event.event_type}</TableCell>
-                  <TableCell><Badge variant="outline">{event.status}</Badge></TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        event.status === "processed"
+                          ? "success"
+                          : event.status === "failed"
+                            ? "destructive"
+                            : "info"
+                      }
+                    >
+                      {event.status}
+                    </Badge>
+                  </TableCell>
                   <TableCell><Badge variant={event.is_processed ? "default" : "secondary"}>{event.is_processed ? "Yes" : "No"}</Badge></TableCell>
-                  <TableCell className="text-xs">{new Date(event.created_at).toLocaleString()}</TableCell>
+                  <TableCell className="text-xs whitespace-nowrap text-[var(--ink-muted)]">
+                    {formatTimestamp(event.created_at)}
+                  </TableCell>
                 </TableRow>
               ))}
-              {events.length === 0 && <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground">No events yet</TableCell></TableRow>}
+              {events.length === 0 && (
+                <EmptyRow
+                  colSpan={4}
+                  icon={SendIcon}
+                  title="No events yet"
+                  description="Publish an event to fan it out across the configured channels."
+                  action={
+                    <Button size="sm" onClick={() => setPublishOpen(true)}>
+                      <SendIcon />
+                      Publish event
+                    </Button>
+                  }
+                />
+              )}
             </TableBody>
           </Table>
         </Card>
       )}
 
       <Card>
-        <CardHeader className="pb-2 px-6 pt-4"><CardTitle>Quick Publish</CardTitle><CardDescription>Use the button above to publish events. Example payloads are pre-filled.</CardDescription></CardHeader>
+        <CardHeader>
+          <CardTitle>Example payloads</CardTitle>
+          <CardDescription>
+            Publishing an event pre-fills the matching payload from these shapes.
+          </CardDescription>
+        </CardHeader>
         <CardContent>
           <Tabs defaultValue="email">
             <TabsList>
@@ -284,29 +348,37 @@ export default function EventsPage() {
               <TabsTrigger value="all">All Channels</TabsTrigger>
             </TabsList>
             <TabsContent value="email">
-              <pre className="text-xs bg-muted p-3 rounded-md">{`{
+              <CodeBlock>{`{
   "event_type": "${effectiveEventTypes[0]}",
   "payload": { "customer": "Alice", "email": "alice@example.com", "phone": "+254700000000", "amount": "KES 5,250" },
   "channels": ["email"]
-}`}</pre>
+}`}</CodeBlock>
             </TabsContent>
             <TabsContent value="sms">
-              <pre className="text-xs bg-muted p-3 rounded-md">{`{
+              <CodeBlock>{`{
   "event_type": "${effectiveEventTypes[0]}",
   "payload": { "phone": "+254700000000", "otp": "123456" },
   "channels": ["sms"]
-}`}</pre>
+}`}</CodeBlock>
             </TabsContent>
             <TabsContent value="all">
-              <pre className="text-xs bg-muted p-3 rounded-md">{`{
+              <CodeBlock>{`{
   "event_type": "${effectiveEventTypes[0]}",
   "payload": { "name": "Bob", "email": "bob@example.com" },
   "channels": ["email", "sms"]
-}`}</pre>
+}`}</CodeBlock>
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
-    </div>
+    </Page>
+  )
+}
+
+function CodeBlock({ children }: { children: React.ReactNode }) {
+  return (
+    <pre className="mt-3 overflow-x-auto border-2 border-[var(--ink)] bg-[var(--ink)] p-4 font-mono text-xs leading-relaxed text-white/90 shadow-[var(--shadow-brutal-sm)]">
+      {children}
+    </pre>
   )
 }

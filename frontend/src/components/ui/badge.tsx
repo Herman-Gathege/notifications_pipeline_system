@@ -5,23 +5,27 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "group/badge inline-flex h-6 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-none border-2 border-black px-2 py-0 text-[11px] font-bold uppercase tracking-wide whitespace-nowrap transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3!",
+  "group/badge inline-flex h-6 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-none border-2 px-2 py-0 text-[10px] font-black uppercase tracking-[0.08em] whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-orange)] aria-invalid:border-[var(--destructive)] [&>svg]:pointer-events-none [&>svg]:size-3!",
   {
     variants: {
       variant: {
         default:
-          "bg-[var(--brand-orange)] text-white border-black shadow-[2px_2px_0_0_#111111]",
+          "bg-[var(--brand-orange)] text-white border-[var(--brand-orange)]",
         secondary:
-          "bg-white text-black border-black shadow-[2px_2px_0_0_#111111]",
+          "bg-surface-2 text-[var(--ink-soft)] border-[var(--border-mid)]",
         destructive:
-          "bg-white text-[var(--destructive)] border-[var(--destructive)] shadow-[2px_2px_0_0_var(--destructive)]",
+          "bg-[var(--destructive-soft)] text-[var(--destructive)] border-[var(--destructive)]",
         outline:
-          "bg-white text-black border-black",
+          "bg-surface-1 text-[var(--ink-soft)] border-[var(--ink)]",
         ghost:
-          "bg-transparent border-transparent text-black shadow-none",
+          "bg-transparent border-transparent text-[var(--ink-muted)]",
         link: "bg-transparent border-transparent text-[var(--brand-orange)] underline-offset-4 hover:underline shadow-none",
         success:
-          "bg-white text-green-700 border-green-700 shadow-[2px_2px_0_0_#15803d]",
+          "bg-[var(--success-soft)] text-[var(--success)] border-[var(--success)]",
+        warning:
+          "bg-[var(--warning-soft)] text-[var(--warning)] border-[var(--warning)]",
+        info:
+          "bg-[var(--info-soft)] text-[var(--info)] border-[var(--info)]",
       },
     },
     defaultVariants: {

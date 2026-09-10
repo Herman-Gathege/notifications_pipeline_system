@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { RefreshCwIcon } from "lucide-react"
+
+import { ErrorState, Page, PageHeader, StatCard } from "@/components/page-kit"
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useApi } from "@/hooks/use-api"
 
 interface Stats {
@@ -36,91 +45,155 @@ export default function DashboardPage() {
     fetchStats()
   }, [])
 
-  const statCards = stats
+  const statCards: {
+    label: string
+    value: number
+    tone: "neutral" | "brand" | "success" | "warning" | "danger" | "info"
+  }[] = stats
     ? [
-        { label: "Total Events", value: stats.events, color: "text-blue-600" },
-        { label: "Total Notifications", value: stats.notifications, color: "text-purple-600" },
-        { label: "Delivered", value: stats.delivered, color: "text-green-600" },
-        { label: "Queued", value: stats.queued, color: "text-yellow-600" },
-        { label: "Failed", value: stats.failed, color: "text-red-600" },
-        { label: "Dead Letter", value: stats.dead_letter, color: "text-orange-600" },
+        { label: "Events", value: stats.events, tone: "neutral" },
+        { label: "Notifications", value: stats.notifications, tone: "brand" },
+        { label: "Delivered", value: stats.delivered, tone: "success" },
+        { label: "Queued", value: stats.queued, tone: "info" },
+        { label: "Failed", value: stats.failed, tone: "danger" },
+        { label: "Dead letter", value: stats.dead_letter, tone: "warning" },
       ]
     : []
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <Button variant="outline" onClick={fetchStats} disabled={loading}>
-          {loading ? "Refreshing..." : "Refresh"}
-        </Button>
-      </div>
+  const deliveryRate =
+    stats && stats.notifications > 0
+      ? (stats.delivered / stats.notifications) * 100
+      : null
 
-      {error && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-          {error}
-        </div>
-      )}
+  return (
+    <Page>
+      <PageHeader
+        title="Dashboard"
+        description="Delivery health across every application, provider and channel."
+        actions={
+          <Button variant="outline" onClick={fetchStats} disabled={loading}>
+            <RefreshCwIcon className={loading ? "animate-spin" : undefined} />
+            {loading ? "Refreshing" : "Refresh"}
+          </Button>
+        }
+      />
+
+      {error ? <ErrorState message={error} onRetry={fetchStats} /> : null}
 
       {loading && !stats ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-4">
-                <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-                <div className="mt-2 h-8 w-16 animate-pulse rounded bg-muted" />
+            <Card key={i} size="sm" aria-busy="true">
+              <CardContent className="pl-6">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="mt-3 h-8 w-16" />
               </CardContent>
             </Card>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {statCards.map((stat) => (
-            <Card key={stat.label}>
-              <CardHeader className="pb-2">
-                <CardDescription>{stat.label}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-3xl font-bold ${stat.color}`}>{stat.value}</div>
-              </CardContent>
-            </Card>
+            <StatCard
+              key={stat.label}
+              label={stat.label}
+              value={stat.value}
+              tone={stat.tone}
+            />
           ))}
         </div>
       )}
 
       {stats && (
-        <Card className="mt-6">
-          <CardHeader className="pb-2 px-6 pt-4">
-            <CardTitle>Delivery Rate</CardTitle>
+        <Card>
+          <CardHeader>
+            <CardTitle>Delivery health</CardTitle>
+            <CardDescription>
+              Share of notifications by final status.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="pt-0 px-6 pb-4">
+          <CardContent>
             {stats.notifications > 0 ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>Delivered</span>
-                  <Badge variant="secondary">
-                    {((stats.delivered / stats.notifications) * 100).toFixed(1)}%
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Failed</span>
-                  <Badge variant="destructive">
-                    {((stats.failed / stats.notifications) * 100).toFixed(1)}%
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Dead Letter</span>
-                  <Badge variant="outline">
-                    {((stats.dead_letter / stats.notifications) * 100).toFixed(1)}%
-                  </Badge>
-                </div>
+              <div className="flex flex-col gap-5">
+                {deliveryRate !== null && (
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b-2 border-[var(--border-soft)] pb-4">
+                    <span className="stat-value">{deliveryRate.toFixed(1)}%</span>
+                    <span className="text-sm text-[var(--ink-muted)]">
+                      delivered of {stats.notifications.toLocaleString()}{" "}
+                      notifications
+                    </span>
+                  </div>
+                )}
+                <BreakdownRow
+                  label="Delivered"
+                  value={stats.delivered}
+                  total={stats.notifications}
+                  tone="success"
+                />
+                <BreakdownRow
+                  label="Failed"
+                  value={stats.failed}
+                  total={stats.notifications}
+                  tone="danger"
+                />
+                <BreakdownRow
+                  label="Dead letter"
+                  value={stats.dead_letter}
+                  total={stats.notifications}
+                  tone="warning"
+                />
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No notifications yet</p>
+              <p className="text-sm text-[var(--ink-muted)]">
+                No notifications yet. Publish an event to populate delivery
+                metrics.
+              </p>
             )}
           </CardContent>
         </Card>
       )}
+    </Page>
+  )
+}
+
+function BreakdownRow({
+  label,
+  value,
+  total,
+  tone,
+}: {
+  label: string
+  value: number
+  total: number
+  tone: "success" | "danger" | "warning"
+}) {
+  const percent = total > 0 ? (value / total) * 100 : 0
+  const barTone = {
+    success: "bg-[var(--success)]",
+    danger: "bg-[var(--destructive)]",
+    warning: "bg-[var(--warning)]",
+  }[tone]
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between gap-4">
+        <span className="text-sm font-bold text-[var(--ink)]">{label}</span>
+        <span className="text-sm tabular-nums text-[var(--ink-muted)]">
+          {value.toLocaleString()}
+          <span className="ml-2 font-bold text-[var(--ink)]">
+            {percent.toFixed(1)}%
+          </span>
+        </span>
+      </div>
+      <div
+        role="presentation"
+        className="h-2 w-full border-2 border-[var(--ink)] bg-surface-2"
+      >
+        <div
+          className={`h-full ${barTone}`}
+          style={{ width: `${Math.min(percent, 100)}%` }}
+        />
+      </div>
     </div>
   )
 }

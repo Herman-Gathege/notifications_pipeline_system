@@ -17,7 +17,8 @@ export default function Dashboard() {
       <SidebarInset>
         <SiteHeader />
 
-        <div className="flex flex-1 flex-col gap-4 p-4">
+        {/* min-w-0 keeps wide data tables from stretching the shell */}
+        <div className="flex min-w-0 flex-1 flex-col">
           <Outlet />
         </div>
       </SidebarInset>

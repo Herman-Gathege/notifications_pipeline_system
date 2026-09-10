@@ -91,19 +91,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader className="border-b-2 border-black bg-white">
+      <SidebarHeader className="border-b-2 border-[var(--border-soft)] px-2 py-3">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              className="data-[slot=sidebar-menu-button]:p-2!"
+              className="h-auto gap-3 px-2 py-2 hover:bg-transparent data-[slot=sidebar-menu-button]:p-2!"
               render={<a href="/dashboard" />}
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-none border-2 border-black bg-[var(--brand-orange)] text-white shadow-[3px_3px_0_0_#000]">
-                <span className="text-sm font-black">FT</span>
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-none border-2 border-[var(--ink)] bg-[var(--brand-orange)] text-white shadow-[var(--shadow-brutal-xs)]">
+                <span className="text-sm font-black tracking-tight">FT</span>
               </div>
-              <div className="flex flex-col leading-tight">
-                <span className="text-sm font-black uppercase tracking-tight text-black">FikaTu</span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--brand-orange)]">
+              <div className="flex min-w-0 flex-col leading-tight">
+                <span className="truncate text-sm font-black uppercase tracking-tight text-[var(--ink)]">
+                  FikaTu
+                </span>
+                <span className="truncate text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--brand-orange)]">
                   Notifications
                 </span>
               </div>
@@ -114,7 +116,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={navMain} />
       </SidebarContent>
-      <SidebarFooter className="border-t-2 border-black bg-white">
+      <SidebarFooter className="border-t-2 border-[var(--border-soft)] p-2">
         <NavUser user={currentUser} />
       </SidebarFooter>
     </Sidebar>

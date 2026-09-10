@@ -1,11 +1,21 @@
 import { useState, useEffect } from "react"
+import { FileTextIcon, PlusIcon } from "lucide-react"
+
+import {
+  EmptyRow,
+  ErrorState,
+  Field,
+  FieldGrid,
+  Page,
+  PageHeader,
+  TableSkeleton,
+} from "@/components/page-kit"
 import { useApi } from "@/hooks/use-api"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
@@ -110,65 +120,115 @@ export default function TemplatesPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Templates</h1>
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <DialogTrigger render={<Button />}>
-            Create Template
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Create Template</DialogTitle>
-              <DialogDescription>Define a notification template for an event type.</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="tmpl-name">Name</Label>
-                <Input id="tmpl-name" value={createData.name} onChange={(e) => setCreateData({ ...createData, name: e.target.value })} placeholder="Payment Email" required />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="tmpl-event">Event Type</Label>
-                  <Input id="tmpl-event" value={createData.event_type} onChange={(e) => setCreateData({ ...createData, event_type: e.target.value })} placeholder="payment.success" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="tmpl-channel">Channel</Label>
-                  <Select value={createData.channel}                     onValueChange={(v) => {
-                      if (!v) return
-                      setCreateData({ ...createData, channel: v })
-                    }}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="sms">SMS</SelectItem>
-                      <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tmpl-subject">Subject</Label>
-                <Input id="tmpl-subject" value={createData.subject} onChange={(e) => setCreateData({ ...createData, subject: e.target.value })} placeholder="Payment Received" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="tmpl-body">Body (use {'{{variable}}'} for placeholders)</Label>
-                <Textarea id="tmpl-body" value={createData.body} onChange={(e) => setCreateData({ ...createData, body: e.target.value })} placeholder="Hello {{customer}}, your payment of {{amount}} has been received." rows={4} required />
-              </div>
-              <DialogFooter>
-                <Button type="submit">Create</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+    <Page>
+      <PageHeader
+        title="Templates"
+        description="Message content mapped to event types and channels."
+        actions={
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <DialogTrigger render={<Button />}>
+              <PlusIcon />
+              Create template
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create template</DialogTitle>
+                <DialogDescription>
+                  Define a notification template for an event type.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreate} className="flex flex-col gap-5">
+                <Field label="Name" htmlFor="tmpl-name">
+                  <Input
+                    id="tmpl-name"
+                    value={createData.name}
+                    onChange={(e) =>
+                      setCreateData({ ...createData, name: e.target.value })
+                    }
+                    placeholder="Payment Email"
+                    required
+                  />
+                </Field>
+                <FieldGrid>
+                  <Field label="Event type" htmlFor="tmpl-event">
+                    <Input
+                      id="tmpl-event"
+                      value={createData.event_type}
+                      onChange={(e) =>
+                        setCreateData({
+                          ...createData,
+                          event_type: e.target.value,
+                        })
+                      }
+                      placeholder="payment.success"
+                      required
+                    />
+                  </Field>
+                  <Field label="Channel" htmlFor="tmpl-channel">
+                    <Select
+                      value={createData.channel}
+                      onValueChange={(v) => {
+                        if (!v) return
+                        setCreateData({ ...createData, channel: v })
+                      }}
+                    >
+                      <SelectTrigger id="tmpl-channel">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="sms">SMS</SelectItem>
+                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </FieldGrid>
+                <Field label="Subject" htmlFor="tmpl-subject">
+                  <Input
+                    id="tmpl-subject"
+                    value={createData.subject}
+                    onChange={(e) =>
+                      setCreateData({ ...createData, subject: e.target.value })
+                    }
+                    placeholder="Payment Received"
+                  />
+                </Field>
+                <Field
+                  label="Body"
+                  htmlFor="tmpl-body"
+                  hint={`Use {{variable}} placeholders to inject event payload values.`}
+                >
+                  <Textarea
+                    id="tmpl-body"
+                    value={createData.body}
+                    onChange={(e) =>
+                      setCreateData({ ...createData, body: e.target.value })
+                    }
+                    placeholder="Hello {{customer}}, your payment of {{amount}} has been received."
+                    rows={4}
+                    required
+                  />
+                </Field>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCreateOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">Create</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
-      {error && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
-      )}
+      {error ? <ErrorState message={error} onRetry={fetchTemplates} /> : null}
 
       {loading ? (
-        <Card><CardContent className="p-4"><div className="h-8 w-full animate-pulse rounded bg-muted" /></CardContent></Card>
+        <TableSkeleton columns={6} label="Loading templates" />
       ) : (
         <Card>
           <Table>
@@ -179,32 +239,56 @@ export default function TemplatesPage() {
                 <TableHead>Channel</TableHead>
                 <TableHead>Subject</TableHead>
                 <TableHead>Active</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {templates.map((tmpl) => (
                 <TableRow key={tmpl.id}>
-                  <TableCell className="font-medium">{tmpl.name}</TableCell>
-                  <TableCell className="text-xs">{tmpl.event_type}</TableCell>
-                  <TableCell><Badge variant="outline">{tmpl.channel}</Badge></TableCell>
-                  <TableCell className="text-xs">{tmpl.subject || "—"}</TableCell>
-                  <TableCell><Badge variant={tmpl.is_active ? "default" : "secondary"}>{tmpl.is_active ? "Active" : "Inactive"}</Badge></TableCell>
-                  <TableCell className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => { setEditingTemplate(tmpl); setEditData({ name: tmpl.name, event_type: tmpl.event_type, channel: tmpl.channel, subject: tmpl.subject || "", body: tmpl.body }) }}>Edit</Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
-                        Delete
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader><AlertDialogTitle>Delete Template</AlertDialogTitle><AlertDialogDescription>Are you sure you want to delete "{tmpl.name}"?</AlertDialogDescription></AlertDialogHeader>
-                        <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => handleDelete(tmpl.id)}>Delete</AlertDialogAction></AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                  <TableCell className="font-bold text-[var(--ink)]">
+                    {tmpl.name}
+                  </TableCell>
+                  <TableCell className="cell-mono">{tmpl.event_type}</TableCell>
+                  <TableCell><Badge variant="secondary">{tmpl.channel}</Badge></TableCell>
+                  <TableCell>
+                    <div
+                      className="cell-truncate text-xs text-[var(--ink-muted)]"
+                      title={tmpl.subject || undefined}
+                    >
+                      {tmpl.subject || "—"}
+                    </div>
+                  </TableCell>
+                  <TableCell><Badge variant={tmpl.is_active ? "success" : "secondary"}>{tmpl.is_active ? "Active" : "Inactive"}</Badge></TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="sm" onClick={() => { setEditingTemplate(tmpl); setEditData({ name: tmpl.name, event_type: tmpl.event_type, channel: tmpl.channel, subject: tmpl.subject || "", body: tmpl.body }) }}>Edit</Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
+                          Delete
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader><AlertDialogTitle>Delete template</AlertDialogTitle><AlertDialogDescription>Are you sure you want to delete "{tmpl.name}"? This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction variant="destructive" onClick={() => handleDelete(tmpl.id)}>Delete</AlertDialogAction></AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
-              {templates.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No templates yet</TableCell></TableRow>}
+              {templates.length === 0 && (
+                <EmptyRow
+                  colSpan={6}
+                  icon={FileTextIcon}
+                  title="No templates yet"
+                  description="Create a template so events can be rendered into messages."
+                  action={
+                    <Button size="sm" onClick={() => setCreateOpen(true)}>
+                      <PlusIcon />
+                      Create template
+                    </Button>
+                  }
+                />
+              )}
             </TableBody>
           </Table>
         </Card>
@@ -212,24 +296,37 @@ export default function TemplatesPage() {
 
       {editingTemplate && (
         <Dialog open={!!editingTemplate} onOpenChange={() => { setEditingTemplate(null); setEditData({ name: "", event_type: "", channel: "email", subject: "", body: "" }) }}>
-          <DialogContent className="max-w-lg">
+          <DialogContent>
             <DialogHeader><DialogTitle>Edit Template</DialogTitle></DialogHeader>
-            <form onSubmit={(e) => { e.preventDefault(); handleUpdate(editingTemplate.id) }} className="space-y-4">
-              <div className="space-y-2"><Label>Name</Label><Input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} required /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Event Type</Label><Input value={editData.event_type} onChange={(e) => setEditData({ ...editData, event_type: e.target.value })} required /></div>
-                <div className="space-y-2"><Label>Channel</Label><Select value={editData.channel}                     onValueChange={(v) => {
+            <form onSubmit={(e) => { e.preventDefault(); handleUpdate(editingTemplate.id) }} className="flex flex-col gap-5">
+              <Field label="Name"><Input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} required /></Field>
+              <FieldGrid>
+                <Field label="Event type"><Input value={editData.event_type} onChange={(e) => setEditData({ ...editData, event_type: e.target.value })} required /></Field>
+                <Field label="Channel"><Select value={editData.channel}                     onValueChange={(v) => {
                       if (!v) return
                       setEditData({ ...editData, channel: v })
-                    }}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="email">Email</SelectItem><SelectItem value="sms">SMS</SelectItem><SelectItem value="whatsapp">WhatsApp</SelectItem></SelectContent></Select></div>
-              </div>
-              <div className="space-y-2"><Label>Subject</Label><Input value={editData.subject} onChange={(e) => setEditData({ ...editData, subject: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Body</Label><Textarea value={editData.body} onChange={(e) => setEditData({ ...editData, body: e.target.value })} rows={4} required /></div>
-              <DialogFooter><Button type="submit">Save</Button></DialogFooter>
+                    }}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="email">Email</SelectItem><SelectItem value="sms">SMS</SelectItem><SelectItem value="whatsapp">WhatsApp</SelectItem></SelectContent></Select>
+                </Field>
+              </FieldGrid>
+              <Field label="Subject"><Input value={editData.subject} onChange={(e) => setEditData({ ...editData, subject: e.target.value })} /></Field>
+              <Field label="Body"><Textarea value={editData.body} onChange={(e) => setEditData({ ...editData, body: e.target.value })} rows={4} required /></Field>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setEditingTemplate(null)
+                    setEditData({ name: "", event_type: "", channel: "email", subject: "", body: "" })
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Save</Button>
+              </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
       )}
-    </div>
+    </Page>
   )
 }

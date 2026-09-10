@@ -1,8 +1,11 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
+import { AlertTriangleIcon } from "lucide-react"
+
+import { Field } from "@/components/page-kit"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DevBadge } from "@/components/dev-badge"
 import { useAuth } from "@/contexts/auth-context"
@@ -66,75 +69,90 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/50">
+    <div className="flex min-h-screen items-center justify-center bg-surface-0 px-4 pt-10 pb-24 sm:px-8">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mb-4 flex justify-center">
-            <img src="/FikaTu-logo.png" alt="FikaTu" className="h-16 w-auto" />
+        <CardHeader className="border-b-2 border-[var(--ink)]">
+          <div className="flex items-center gap-3">
+            <div className="flex size-11 shrink-0 items-center justify-center border-2 border-[var(--ink)] bg-[var(--brand-orange)] text-white shadow-[var(--shadow-brutal-xs)]">
+              <span className="text-lg font-black tracking-tight">FT</span>
+            </div>
+            <div className="min-w-0">
+              <CardTitle className="text-xl">Create account</CardTitle>
+              <CardDescription>
+                Start managing notifications in minutes.
+              </CardDescription>
+            </div>
           </div>
-          <CardTitle>FikaTu</CardTitle>
-          <CardDescription>Create your account to manage notifications</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <Field label="Name" htmlFor="name">
               <Input
                 id="name"
                 type="text"
+                autoComplete="name"
                 placeholder="John Doe"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            </Field>
+            <Field label="Email" htmlFor="email">
               <Input
                 id="email"
                 type="email"
+                autoComplete="email"
                 placeholder="john@fikatu.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            </Field>
+            <Field
+              label="Password"
+              htmlFor="password"
+              hint="At least 8 characters."
+            >
               <Input
                 id="password"
                 type="password"
+                autoComplete="new-password"
                 placeholder="At least 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+            </Field>
+            <Field label="Confirm password" htmlFor="confirmPassword">
               <Input
                 id="confirmPassword"
                 type="password"
+                autoComplete="new-password"
                 placeholder="Re-type your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
-            </div>
+            </Field>
             {error && (
-              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
-              </div>
+              <Alert variant="destructive">
+                <AlertTriangleIcon />
+                <AlertTitle>Registration failed</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating account..." : "Register"}
+            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+              {loading ? "Creating account…" : "Create account"}
             </Button>
-            <div className="text-center text-sm">
+            <p className="border-t-2 border-[var(--border-soft)] pt-4 text-center text-sm text-[var(--ink-muted)]">
               Already have an account?{" "}
-              <Link to="/" className="text-primary hover:underline">
+              <Link
+                to="/"
+                className="font-bold text-[var(--brand-orange)] underline decoration-2 underline-offset-4 hover:text-[var(--brand-orange-hover)]"
+              >
                 Sign in
               </Link>
-            </div>
+            </p>
           </form>
         </CardContent>
       </Card>

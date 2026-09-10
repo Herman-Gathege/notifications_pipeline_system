@@ -18,13 +18,13 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupContent className="flex flex-col gap-2">
+      <SidebarGroupContent className="flex flex-col gap-1">
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 tooltip={item.title}
-                className="rounded-none border-l-2 border-transparent data-[active=true]:border-[var(--brand-orange)] data-[active=true]:bg-[var(--brand-orange)]/10 data-[active=true]:text-black font-semibold"
+                className="h-10 rounded-none border-l-[3px] border-transparent px-3 text-sm font-bold text-[var(--ink-soft)] transition-colors hover:bg-surface-2 hover:text-[var(--ink)] data-[active=true]:border-[var(--brand-orange)] data-[active=true]:bg-[var(--brand-orange-soft)] data-[active=true]:font-black data-[active=true]:text-[var(--ink)]"
                 render={<Link to={item.url} />}
               >
                 {item.icon}

@@ -6,31 +6,78 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Neo-brutalist palette */
+  /* Brand — unchanged */
   --brand-orange: #E65100;
   --brand-orange-hover: #C54800;
-  --brand-orange-soft: #FFE6D5;
-  --brand-black: #111111;
+  --brand-orange-soft: #FFF1E6;
+  --brand-orange-tint: #FFF9F4;
+  --brand-black: #14110F;
   --brand-white: #FFFFFF;
 
-  /* Neutral surfaces */
-  --surface-1: #FFFFFF;
-  --surface-2: #F7F7F7;
-  --surface-3: #EFEFEF;
-  --border-strong: #111111;
-  --border-soft: #E5E5E5;
-  --text-muted: #6B6B6B;
-  --text-disabled: #9A9A9A;
+  /* Ink — warm near-black, used for text and every hard edge */
+  --ink: #14110F;
+  --ink-soft: #2E2A26;
+  --ink-muted: #6B6660;
+  --ink-faint: #8A857E;
 
-  /* Hard shadows */
-  --shadow-brutal: 4px 4px 0 0 #111111;
-  --shadow-brutal-sm: 2px 2px 0 0 #111111;
-  --shadow-brutal-orange: 4px 4px 0 0 var(--brand-orange);
+  /* Neutral surfaces, lightest to deepest */
+  --surface-0: #F6F4F2;
+  --surface-1: #FFFFFF;
+  --surface-2: #F3F1EE;
+  --surface-3: #E9E6E1;
+  --surface-inverse: #14110F;
+
+  --border-strong: #14110F;
+  --border-mid: #D9D4CD;
+  --border-soft: #E8E5E0;
+  --text-muted: #6B6660;
+  --text-disabled: #A19C95;
+
+  /* Status */
+  --success: #15803D;
+  --success-soft: #EAF6EE;
+  --warning: #B45309;
+  --warning-soft: #FDF4E7;
+  --info: #1D4ED8;
+  --info-soft: #EEF2FE;
+  --destructive-soft: #FCEDED;
+
+  /* Hard shadows — one light source, top-left to bottom-right.
+     Depth is emphasis: use small offsets by default. */
+  --shadow-brutal-xs: 1px 1px 0 0 var(--ink);
+  --shadow-brutal-sm: 2px 2px 0 0 var(--ink);
+  --shadow-brutal: 3px 3px 0 0 var(--ink);
+  --shadow-brutal-lg: 4px 4px 0 0 var(--ink);
+  --shadow-brutal-orange: 3px 3px 0 0 var(--brand-orange);
+  --shadow-brutal-focus: 2px 2px 0 0 var(--brand-orange);
+  --shadow-brutal-danger: 2px 2px 0 0 var(--destructive);
+
+  /* Floating surfaces get a whisper of radius so they read as layered */
+  --radius-overlay: 3px;
 }
 
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
+    --color-ink: var(--ink);
+    --color-ink-soft: var(--ink-soft);
+    --color-ink-muted: var(--ink-muted);
+    --color-ink-faint: var(--ink-faint);
+    --color-surface-0: var(--surface-0);
+    --color-surface-1: var(--surface-1);
+    --color-surface-2: var(--surface-2);
+    --color-surface-3: var(--surface-3);
+    --color-surface-inverse: var(--surface-inverse);
+    --color-brand: var(--brand-orange);
+    --color-brand-soft: var(--brand-orange-soft);
+    --color-brand-tint: var(--brand-orange-tint);
+    --color-success: var(--success);
+    --color-success-soft: var(--success-soft);
+    --color-warning: var(--warning);
+    --color-warning-soft: var(--warning-soft);
+    --color-info: var(--info);
+    --color-info-soft: var(--info-soft);
+    --color-destructive-soft: var(--destructive-soft);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -72,107 +119,181 @@
 }
 
 :root {
-    --background: #F7F7F7;
-    --foreground: #111111;
-    --card: #FFFFFF;
-    --card-foreground: #111111;
-    --popover: #FFFFFF;
-    --popover-foreground: #111111;
-    --primary: #E65100;
+    --background: var(--surface-0);
+    --foreground: var(--ink);
+    --card: var(--surface-1);
+    --card-foreground: var(--ink);
+    --popover: var(--surface-1);
+    --popover-foreground: var(--ink);
+    --primary: var(--brand-orange);
     --primary-foreground: #FFFFFF;
-    --secondary: #F2F2F2;
-    --secondary-foreground: #111111;
-    --muted: #F2F2F2;
-    --muted-foreground: #6B6B6B;
-    --accent: #FFE6D5;
-    --accent-foreground: #111111;
+    --secondary: var(--surface-2);
+    --secondary-foreground: var(--ink);
+    --muted: var(--surface-2);
+    --muted-foreground: var(--ink-muted);
+    --accent: var(--brand-orange-soft);
+    --accent-foreground: var(--ink);
     --destructive: #B91C1C;
-    --border: #E5E5E5;
-    --input: #E5E5E5;
-    --ring: #E65100;
+    --border: var(--border-mid);
+    --input: var(--border-mid);
+    --ring: var(--brand-orange);
     --chart-1: #E65100;
-    --chart-2: #111111;
-    --chart-3: #6B6B6B;
-    --chart-4: #999999;
-    --chart-5: #CCCCCC;
+    --chart-2: #14110F;
+    --chart-3: #6B6660;
+    --chart-4: #15803D;
+    --chart-5: #D9D4CD;
     --radius: 0;
-    --sidebar: #FFFFFF;
-    --sidebar-foreground: #111111;
+    --sidebar: var(--surface-1);
+    --sidebar-foreground: var(--ink);
     --sidebar-primary: #E65100;
     --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #FFE6D5;
-    --sidebar-accent-foreground: #111111;
-    --sidebar-border: #111111;
+    --sidebar-accent: var(--brand-orange-soft);
+    --sidebar-accent-foreground: var(--ink);
+    --sidebar-border: var(--border-soft);
     --sidebar-ring: #E65100;
 }
 
 .dark {
-    --background: #111111;
-    --foreground: #FFFFFF;
-    --card: #1A1A1A;
-    --card-foreground: #FFFFFF;
-    --popover: #1A1A1A;
-    --popover-foreground: #FFFFFF;
+    --background: #14110F;
+    --foreground: #F6F4F2;
+    --card: #1C1917;
+    --card-foreground: #F6F4F2;
+    --popover: #1C1917;
+    --popover-foreground: #F6F4F2;
     --primary: #E65100;
     --primary-foreground: #FFFFFF;
-    --secondary: #222222;
-    --secondary-foreground: #FFFFFF;
-    --muted: #222222;
-    --muted-foreground: #9A9A9A;
+    --secondary: #26221F;
+    --secondary-foreground: #F6F4F2;
+    --muted: #26221F;
+    --muted-foreground: #A19C95;
     --accent: #2A1A11;
-    --accent-foreground: #FFFFFF;
+    --accent-foreground: #F6F4F2;
     --destructive: #EF4444;
-    --border: #333333;
-    --input: #333333;
+    --border: #332E2A;
+    --input: #332E2A;
     --ring: #E65100;
     --chart-1: #E65100;
-    --chart-2: #FFFFFF;
-    --chart-3: #9A9A9A;
-    --chart-4: #6B6B6B;
-    --chart-5: #444444;
-    --sidebar: #0A0A0A;
-    --sidebar-foreground: #FFFFFF;
+    --chart-2: #F6F4F2;
+    --chart-3: #A19C95;
+    --chart-4: #4ADE80;
+    --chart-5: #57534E;
+    --sidebar: #191613;
+    --sidebar-foreground: #F6F4F2;
     --sidebar-primary: #E65100;
     --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: #1F1108;
-    --sidebar-accent-foreground: #FFFFFF;
-    --sidebar-border: #333333;
+    --sidebar-accent: #2A1A11;
+    --sidebar-accent-foreground: #F6F4F2;
+    --sidebar-border: #332E2A;
     --sidebar-ring: #E65100;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
-    }
-  body {
-    @apply bg-background text-foreground;
-    }
+    border-color: var(--border-mid);
+  }
+
   html {
     @apply font-sans;
-    }
-  h1, h2, h3 {
-    @apply font-black tracking-tight;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-heading font-black tracking-tight;
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: var(--brand-orange);
+    color: #FFFFFF;
+  }
+
+  /* Keyboard focus is always a crisp orange outline, offset from the edge */
+  :focus-visible {
+    outline: 2px solid var(--brand-orange);
+    outline-offset: 2px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-3) transparent;
   }
 }
 
-/* Neo-brutalist utility classes */
+/* ------------------------------------------------------------------ */
+/*  Neo-brutalist component utilities                                  */
+/* ------------------------------------------------------------------ */
 @layer components {
+  /* -- Surfaces ----------------------------------------------------- */
   .brutal-card {
-    @apply rounded-none border-2 border-black bg-white shadow-[4px_4px_0_0_#111111];
+    @apply rounded-none border-2 border-[var(--ink)] bg-surface-1 shadow-[var(--shadow-brutal)];
   }
+
+  .panel {
+    @apply rounded-none border-2 border-[var(--ink)] bg-surface-1;
+  }
+
+  /* -- Form controls ------------------------------------------------ */
   .brutal-input {
-    @apply rounded-none border-2 border-black bg-white focus-visible:ring-0 focus-visible:border-[var(--brand-orange)] focus-visible:shadow-[2px_2px_0_0_#E65100];
+    @apply rounded-none border-2 border-[var(--ink)] bg-surface-1 focus-visible:border-[var(--brand-orange)] focus-visible:shadow-[var(--shadow-brutal-focus)];
   }
+
+  /* -- Buttons ------------------------------------------------------ */
   .brutal-btn-primary {
-    @apply rounded-none border-2 border-black bg-[var(--brand-orange)] text-white shadow-[3px_3px_0_0_#111111] hover:bg-[var(--brand-orange-hover)] hover:shadow-[4px_4px_0_0_#111111] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_#111111];
+    @apply rounded-none border-2 border-[var(--ink)] bg-[var(--brand-orange)] text-white shadow-[var(--shadow-brutal-sm)] transition-[transform,box-shadow,background-color] duration-150 hover:bg-[var(--brand-orange-hover)] hover:shadow-[var(--shadow-brutal)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[var(--shadow-brutal-xs)];
   }
+
   .brutal-btn-outline {
-    @apply rounded-none border-2 border-black bg-white text-black shadow-[3px_3px_0_0_#111111] hover:bg-[var(--brand-orange)] hover:text-white active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_0_#111111];
+    @apply rounded-none border-2 border-[var(--ink)] bg-surface-1 text-[var(--ink)] shadow-[var(--shadow-brutal-sm)] transition-[transform,box-shadow,background-color,color] duration-150 hover:bg-[var(--ink)] hover:text-white hover:shadow-[var(--shadow-brutal)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[var(--shadow-brutal-xs)];
   }
+
+  /* -- Badges ------------------------------------------------------- */
   .brutal-badge {
-    @apply rounded-none border-2 border-black bg-white px-2 py-0.5 text-xs font-bold uppercase tracking-wide;
+    @apply rounded-none border-2 border-[var(--ink)] bg-surface-1 px-2 py-0.5 text-xs font-bold uppercase tracking-wide;
   }
+
   .brutal-badge-orange {
-    @apply rounded-none border-2 border-black bg-[var(--brand-orange)] px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white;
+    @apply rounded-none border-2 border-[var(--ink)] bg-[var(--brand-orange)] px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white;
+  }
+
+  /* -- Page rhythm -------------------------------------------------- */
+  .page-shell {
+    @apply mx-auto flex w-full max-w-[1600px] flex-col gap-6 p-4 pb-24 md:gap-7 md:p-6 md:pb-24 lg:p-8 lg:pb-24;
+  }
+
+  .page-header {
+    @apply flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between;
+  }
+
+  .page-title {
+    @apply text-[26px] leading-[1.1] font-black tracking-[-0.02em] text-[var(--ink)] md:text-[30px];
+  }
+
+  .page-description {
+    @apply mt-2 max-w-prose text-sm leading-relaxed text-[var(--ink-muted)];
+  }
+
+  .section-label {
+    @apply text-[11px] font-black uppercase tracking-[0.16em] text-[var(--ink-muted)];
+  }
+
+  /* -- Numerals ----------------------------------------------------- */
+  .stat-value {
+    @apply text-[32px] leading-none font-black tracking-[-0.02em] tabular-nums text-[var(--ink)];
+  }
+
+  /* -- Data helpers ------------------------------------------------- */
+  .cell-truncate {
+    @apply block max-w-[240px] truncate;
+  }
+
+  .cell-mono {
+    @apply font-mono text-xs tracking-tight text-[var(--ink-soft)];
   }
 }

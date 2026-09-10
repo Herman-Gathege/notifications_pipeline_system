@@ -1,8 +1,18 @@
 import { useState, useEffect } from "react"
+import { FolderIcon, PlusIcon } from "lucide-react"
+
+import {
+  EmptyRow,
+  ErrorState,
+  Field,
+  formatDate,
+  Page,
+  PageHeader,
+  TableSkeleton,
+} from "@/components/page-kit"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -79,49 +89,53 @@ export default function ApplicationsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Applications</h1>
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <DialogTrigger render={<Button />}>
-            Create Application
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Application</DialogTitle>
-              <DialogDescription>Add a new application to send notifications.</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="app-name">Name</Label>
-                <Input
-                  id="app-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="My Application"
-                  required
-                />
-              </div>
-              <DialogFooter>
-                <Button type="submit">Create</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+    <Page>
+      <PageHeader
+        title="Applications"
+        description="Each application holds its own API credentials and event traffic."
+        actions={
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <DialogTrigger render={<Button />}>
+              <PlusIcon />
+              Create application
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create application</DialogTitle>
+                <DialogDescription>
+                  Add a new application to send notifications from.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreate} className="flex flex-col gap-5">
+                <Field label="Name" htmlFor="app-name">
+                  <Input
+                    id="app-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="My Application"
+                    required
+                  />
+                </Field>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCreateOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">Create</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
-      {error && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-          {error}
-        </div>
-      )}
+      {error ? <ErrorState message={error} onRetry={fetchApplications} /> : null}
 
       {loading ? (
-        <Card>
-          <CardContent className="p-4">
-            <div className="h-8 w-full animate-pulse rounded bg-muted" />
-          </CardContent>
-        </Card>
+        <TableSkeleton columns={5} label="Loading applications" />
       ) : (
         <Card>
           <Table>
@@ -131,59 +145,89 @@ export default function ApplicationsPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>API Key</TableHead>
                 <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {applications.map((app) => (
                 <TableRow key={app.id}>
-                  <TableCell className="font-medium">{app.name}</TableCell>
+                  <TableCell className="font-bold text-[var(--ink)]">
+                    {app.name}
+                  </TableCell>
                   <TableCell>
-                    <Badge variant={app.status === "active" ? "default" : "secondary"}>
+                    <Badge
+                      variant={app.status === "active" ? "success" : "secondary"}
+                    >
                       {app.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="max-w-[200px] truncate text-xs">{app.api_key}</TableCell>
-                  <TableCell className="text-xs">{new Date(app.created_at).toLocaleDateString()}</TableCell>
-                  <TableCell className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setEditingApp(app)
-                        setEditName(app.name)
-                      }}
+                  <TableCell>
+                    <div
+                      className="cell-truncate cell-mono"
+                      title={app.api_key}
                     >
-                      Edit
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger render={<Button variant="destructive" size="sm" />}>
-                        Delete
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Application</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete "{app.name}"? This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(app.id)}>
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                      {app.api_key}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-xs whitespace-nowrap text-[var(--ink-muted)]">
+                    {formatDate(app.created_at)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditingApp(app)
+                          setEditName(app.name)
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger
+                          render={<Button variant="destructive" size="sm" />}
+                        >
+                          Delete
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Delete application
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{app.name}"? This
+                              action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              variant="destructive"
+                              onClick={() => handleDelete(app.id)}
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
               {applications.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    No applications yet
-                  </TableCell>
-                </TableRow>
+                <EmptyRow
+                  colSpan={5}
+                  icon={FolderIcon}
+                  title="No applications yet"
+                  description="Create an application to start publishing events and issuing API credentials."
+                  action={
+                    <Button size="sm" onClick={() => setCreateOpen(true)}>
+                      <PlusIcon />
+                      Create application
+                    </Button>
+                  }
+                />
               )}
             </TableBody>
           </Table>
@@ -194,25 +238,37 @@ export default function ApplicationsPage() {
         <Dialog open={!!editingApp} onOpenChange={() => { setEditingApp(null); setEditName("") }}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Application</DialogTitle>
+              <DialogTitle>Edit application</DialogTitle>
             </DialogHeader>
-            <form onSubmit={(e) => { e.preventDefault(); handleUpdate(editingApp.id) }} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-app-name">Name</Label>
+            <form
+              onSubmit={(e) => { e.preventDefault(); handleUpdate(editingApp.id) }}
+              className="flex flex-col gap-5"
+            >
+              <Field label="Name" htmlFor="edit-app-name">
                 <Input
                   id="edit-app-name"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   required
                 />
-              </div>
+              </Field>
               <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setEditingApp(null)
+                    setEditName("")
+                  }}
+                >
+                  Cancel
+                </Button>
                 <Button type="submit">Save</Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
       )}
-    </div>
+    </Page>
   )
 }

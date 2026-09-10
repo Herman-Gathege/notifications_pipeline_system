@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react"
+import { BellIcon, RefreshCwIcon } from "lucide-react"
+
+import {
+  EmptyRow,
+  ErrorState,
+  formatTimestamp,
+  Page,
+  PageHeader,
+  TableSkeleton,
+} from "@/components/page-kit"
 import { useApi } from "@/hooks/use-api"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -51,29 +61,32 @@ export default function NotificationsPage() {
 
   const statusVariant = (status: string) => {
     switch (status) {
-      case "delivered": return "default"
+      case "delivered": return "success"
       case "failed": return "destructive"
       case "queued": return "secondary"
-      case "dead_letter": return "outline"
+      case "dead_letter": return "warning"
+      case "sent": return "info"
       default: return "outline"
     }
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Notifications</h1>
-        <Button variant="outline" onClick={fetchNotifications} disabled={loading}>
-          {loading ? "Refreshing..." : "Refresh"}
-        </Button>
-      </div>
+    <Page>
+      <PageHeader
+        title="Notifications"
+        description="Every delivery attempt, with retry for anything that failed."
+        actions={
+          <Button variant="outline" onClick={fetchNotifications} disabled={loading}>
+            <RefreshCwIcon className={loading ? "animate-spin" : undefined} />
+            {loading ? "Refreshing" : "Refresh"}
+          </Button>
+        }
+      />
 
-      {error && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
-      )}
+      {error ? <ErrorState message={error} onRetry={fetchNotifications} /> : null}
 
       {loading ? (
-        <Card><CardContent className="p-4"><div className="h-8 w-full animate-pulse rounded bg-muted" /></CardContent></Card>
+        <TableSkeleton columns={7} label="Loading notifications" />
       ) : (
         <Card>
           <Table>
@@ -85,29 +98,44 @@ export default function NotificationsPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>Failure Reason</TableHead>
                 <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {notifications.map((notif) => (
                 <TableRow key={notif.id}>
-                  <TableCell className="text-xs font-mono">{notif.id.slice(0, 8)}...</TableCell>
-                  <TableCell><Badge variant="outline">{notif.channel}</Badge></TableCell>
-                  <TableCell className="text-xs">{notif.recipient || "—"}</TableCell>
-                  <TableCell><Badge variant={statusVariant(notif.status)}>{notif.status}</Badge></TableCell>
-                  <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{notif.failure_reason || "—"}</TableCell>
-                  <TableCell className="text-xs">{new Date(notif.created_at).toLocaleString()}</TableCell>
+                  <TableCell className="font-mono text-xs text-[var(--ink-muted)]">
+                    {notif.id.slice(0, 8)}…
+                  </TableCell>
+                  <TableCell><Badge variant="secondary">{notif.channel}</Badge></TableCell>
                   <TableCell>
+                    <div className="cell-truncate max-w-[180px] text-xs" title={notif.recipient || undefined}>
+                      {notif.recipient || "—"}
+                    </div>
+                  </TableCell>
+                  <TableCell><Badge variant={statusVariant(notif.status)}>{notif.status.replace("_", " ")}</Badge></TableCell>
+                  <TableCell>
+                    <div
+                      className="cell-truncate max-w-[170px] text-xs text-[var(--ink-muted)]"
+                      title={notif.failure_reason || undefined}
+                    >
+                      {notif.failure_reason || "—"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-xs whitespace-nowrap text-[var(--ink-muted)]">
+                    {formatTimestamp(notif.created_at)}
+                  </TableCell>
+                  <TableCell className="text-right">
                     {notif.status === "failed" || notif.status === "dead_letter" ? (
                       <AlertDialog>
-                        <AlertDialogTrigger render={<Button variant="outline" size="sm" />}>
+                        <AlertDialogTrigger render={<Button variant="outline" size="sm" className="ml-auto" />}>
                           Retry
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Retry Notification</AlertDialogTitle>
+                            <AlertDialogTitle>Retry notification</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to retry notification {notif.id.slice(0, 8)}...?
+                              This re-queues notification {notif.id.slice(0, 8)}… for delivery.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -117,16 +145,23 @@ export default function NotificationsPage() {
                         </AlertDialogContent>
                       </AlertDialog>
                     ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
+                      <span className="text-xs text-[var(--ink-faint)]">—</span>
                     )}
                   </TableCell>
                 </TableRow>
               ))}
-              {notifications.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No notifications yet</TableCell></TableRow>}
+              {notifications.length === 0 && (
+                <EmptyRow
+                  colSpan={7}
+                  icon={BellIcon}
+                  title="No notifications yet"
+                  description="Notifications appear here once a published event fans out to a channel."
+                />
+              )}
             </TableBody>
           </Table>
         </Card>
       )}
-    </div>
+    </Page>
   )
 }

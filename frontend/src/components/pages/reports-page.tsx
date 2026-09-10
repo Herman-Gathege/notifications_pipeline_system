@@ -1,12 +1,19 @@
-import { useState } from "react"
-import { useApi } from "@/hooks/use-api"
+import { useEffect, useState } from "react"
+import { CalendarRangeIcon, CheckCircle2Icon, FileChartColumnIcon } from "lucide-react"
 
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+  EmptyRow,
+  ErrorState,
+  formatDate,
+  formatTimestamp,
+  Page,
+  PageHeader,
+  TableSkeleton,
+} from "@/components/page-kit"
+import { useApi } from "@/hooks/use-api"
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Card } from "@/components/ui/card"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -79,67 +86,58 @@ export default function ReportsPage() {
     }
   }
 
+  useEffect(() => {
+    fetchReports()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Reports</h1>
+    <Page>
+      <PageHeader
+        title="Reports"
+        description="Aggregated delivery performance, per period and provider."
+        actions={
+          <Button onClick={handleGenerate} disabled={generating}>
+            <FileChartColumnIcon />
+            {generating ? "Generating…" : "Generate report"}
+          </Button>
+        }
+      />
 
-        <Button onClick={handleGenerate} disabled={generating}>
-          {generating ? "Generating..." : "Generate Report"}
-        </Button>
-      </div>
-
-      {error && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-          {error}
-        </div>
-      )}
+      {error ? <ErrorState message={error} onRetry={fetchReports} /> : null}
 
       {lastReport && (
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader>
-            <CardTitle className="text-green-800">
-              Report Generated
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent>
-            <p className="text-sm text-green-800">
-              Report for {lastReport.period_start} to{" "}
-              {lastReport.period_end}
+        <Alert variant="success">
+          <CheckCircle2Icon />
+          <AlertTitle>Report generated</AlertTitle>
+          <AlertDescription>
+            <p className="text-[var(--ink-soft)]">
+              {lastReport.period_start} → {lastReport.period_end}
             </p>
-
-            <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-              <div>
-                Processed:{" "}
-                <strong>{lastReport.notifications_processed}</strong>
-              </div>
-
-              <div>
-                Delivered:{" "}
-                <strong>{lastReport.successful_notifications}</strong>
-              </div>
-
-              <div>
-                Failed:{" "}
-                <strong>{lastReport.failed_notifications}</strong>
-              </div>
-
-              <div>
-                Best Provider:{" "}
-                <strong>{lastReport.best_provider || "N/A"}</strong>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+              <ReportStat
+                label="Processed"
+                value={lastReport.notifications_processed}
+              />
+              <ReportStat
+                label="Delivered"
+                value={lastReport.successful_notifications}
+              />
+              <ReportStat
+                label="Failed"
+                value={lastReport.failed_notifications}
+              />
+              <ReportStat
+                label="Best provider"
+                value={lastReport.best_provider || "N/A"}
+              />
+            </dl>
+          </AlertDescription>
+        </Alert>
       )}
 
       {loading ? (
-        <Card>
-          <CardContent className="p-4">
-            <div className="h-8 w-full animate-pulse rounded bg-muted" />
-          </CardContent>
-        </Card>
+        <TableSkeleton columns={9} label="Loading reports" />
       ) : (
         <Card>
           <Table>
@@ -161,27 +159,27 @@ export default function ReportsPage() {
               {reports.map((report) => (
                 <TableRow key={report.id}>
                   <TableCell className="text-xs">
-                    {report.period_start.slice(0, 10)} →{" "}
-                    {report.period_end.slice(0, 10)}
+                    {formatDate(report.period_start)} →{" "}
+                    {formatDate(report.period_end)}
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="tabular-nums">
                     {report.notifications_processed}
                   </TableCell>
 
-                  <TableCell className="text-green-600">
+                  <TableCell className="font-bold tabular-nums text-[var(--success)]">
                     {report.successful_notifications}
                   </TableCell>
 
-                  <TableCell className="text-red-600">
+                  <TableCell className="font-bold tabular-nums text-[var(--destructive)]">
                     {report.failed_notifications}
                   </TableCell>
 
-                  <TableCell>{report.email_count}</TableCell>
+                  <TableCell className="tabular-nums">{report.email_count}</TableCell>
 
-                  <TableCell>{report.sms_count}</TableCell>
+                  <TableCell className="tabular-nums">{report.sms_count}</TableCell>
 
-                  <TableCell>{report.whatsapp_count}</TableCell>
+                  <TableCell className="tabular-nums">{report.whatsapp_count}</TableCell>
 
                   <TableCell>
                     <Badge variant="outline">
@@ -189,28 +187,49 @@ export default function ReportsPage() {
                     </Badge>
                   </TableCell>
 
-                  <TableCell className="text-xs">
-                    {new Date(
-                      report.created_at
-                    ).toLocaleString()}
+                  <TableCell className="text-xs whitespace-nowrap text-[var(--ink-muted)]">
+                    {formatTimestamp(report.created_at)}
                   </TableCell>
                 </TableRow>
               ))}
 
               {reports.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="text-center text-muted-foreground"
-                  >
-                    No reports yet. Generate one to see results.
-                  </TableCell>
-                </TableRow>
+                <EmptyRow
+                  colSpan={9}
+                  icon={CalendarRangeIcon}
+                  title="No reports yet"
+                  description="Generate a report to aggregate delivery performance for the current period."
+                  action={
+                    <Button size="sm" onClick={handleGenerate} disabled={generating}>
+                      <FileChartColumnIcon />
+                      {generating ? "Generating…" : "Generate report"}
+                    </Button>
+                  }
+                />
               )}
             </TableBody>
           </Table>
         </Card>
       )}
+    </Page>
+  )
+}
+
+function ReportStat({
+  label,
+  value,
+}: {
+  label: string
+  value: string | number
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <dt className="text-[10px] font-black uppercase tracking-[0.14em] text-[var(--ink-muted)]">
+        {label}
+      </dt>
+      <dd className="text-lg font-black tabular-nums text-[var(--ink)]">
+        {value}
+      </dd>
     </div>
   )
 }

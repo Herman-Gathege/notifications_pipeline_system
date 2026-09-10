@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react"
+import { ActivityIcon, RefreshCwIcon } from "lucide-react"
+
+import {
+  EmptyRow,
+  ErrorState,
+  formatTimestamp,
+  Page,
+  PageHeader,
+  StatCard,
+  TableSkeleton,
+} from "@/components/page-kit"
 import { useApi } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -51,29 +62,35 @@ export default function MonitoringPage() {
     fetchStats()
   }, [])
 
-  const statItems = stats
+  const statItems: {
+    label: string
+    value: number
+    tone: "neutral" | "brand" | "success" | "warning" | "danger" | "info"
+  }[] = stats
     ? [
-        { label: "Total Events", value: stats.events, color: "text-blue-600" },
-        { label: "Total Notifications", value: stats.notifications, color: "text-purple-600" },
-        { label: "Delivered", value: stats.delivered, color: "text-green-600" },
-        { label: "Queued", value: stats.queued, color: "text-yellow-600" },
-        { label: "Failed", value: stats.failed, color: "text-red-600" },
-        { label: "Dead Letter", value: stats.dead_letter, color: "text-orange-600" },
+        { label: "Events", value: stats.events, tone: "neutral" },
+        { label: "Notifications", value: stats.notifications, tone: "brand" },
+        { label: "Delivered", value: stats.delivered, tone: "success" },
+        { label: "Queued", value: stats.queued, tone: "info" },
+        { label: "Failed", value: stats.failed, tone: "danger" },
+        { label: "Dead letter", value: stats.dead_letter, tone: "warning" },
       ]
     : []
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Monitoring</h1>
-        <Button variant="outline" onClick={fetchStats} disabled={loading}>
-          {loading ? "Refreshing..." : "Refresh"}
-        </Button>
-      </div>
+    <Page>
+      <PageHeader
+        title="Monitoring"
+        description="Delivery statistics and per-attempt logs across every channel."
+        actions={
+          <Button variant="outline" onClick={fetchStats} disabled={loading}>
+            <RefreshCwIcon className={loading ? "animate-spin" : undefined} />
+            {loading ? "Refreshing" : "Refresh"}
+          </Button>
+        }
+      />
 
-      {error && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
-      )}
+      {error ? <ErrorState message={error} onRetry={fetchStats} /> : null}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
@@ -83,75 +100,28 @@ export default function MonitoringPage() {
 
         <TabsContent value="statistics">
           {loading && !stats ? (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               {Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i}><CardContent className="p-4"><div className="h-4 w-24 animate-pulse rounded bg-muted" /><div className="mt-2 h-8 w-16 animate-pulse rounded bg-muted" /></CardContent></Card>
+                <Card key={i} size="sm" aria-busy="true">
+                  <div className="px-5">
+                    <div className="h-3 w-24 animate-pulse bg-[var(--surface-3)]" />
+                    <div className="mt-3 h-8 w-16 animate-pulse bg-[var(--surface-3)]" />
+                  </div>
+                </Card>
               ))}
             </div>
           ) : stats ? (
             <>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                 {statItems.map((stat) => (
-                  <Card key={stat.label}>
-                    <CardHeader className="pb-2"><CardDescription>{stat.label}</CardDescription></CardHeader>
-                    <CardContent><div className={`text-3xl font-bold ${stat.color}`}>{stat.value}</div></CardContent>
-                  </Card>
+                  <StatCard
+                    key={stat.label}
+                    label={stat.label}
+                    value={stat.value}
+                    tone={stat.tone}
+                  />
                 ))}
               </div>
-              {/* {stats.notifications > 0 && (
-                  <Card className="mt-6">
-                  <CardHeader><CardTitle>Delivery Breakdown</CardTitle></CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Delivered</span>
-                        <Badge variant="default">{((stats.delivered / stats.notifications) * 100).toFixed(1)}%</Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Failed</span>
-                        <Badge variant="destructive">{((stats.failed / stats.notifications) * 100).toFixed(1)}%</Badge>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Dead Letter</span>
-                        <Badge variant="outline">{((stats.dead_letter / stats.notifications) * 100).toFixed(1)}%</Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )} */}
-
-              {stats.notifications > 0 && (
-                <Card className="mt-6">
-                  <CardHeader className="pb-2 px-6 pt-4">
-                    <CardTitle>Delivery Breakdown</CardTitle>
-                  </CardHeader>
-
-                  <CardContent className="pt-0 px-6 pb-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Delivered</span>
-                        <Badge variant="default">
-                          {((stats.delivered / stats.notifications) * 100).toFixed(1)}%
-                        </Badge>
-                      </div>
-
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Failed</span>
-                        <Badge variant="destructive">
-                          {((stats.failed / stats.notifications) * 100).toFixed(1)}%
-                        </Badge>
-                      </div>
-
-                      <div className="flex items-center justify-between text-sm">
-                        <span>Dead Letter</span>
-                        <Badge variant="outline">
-                          {((stats.dead_letter / stats.notifications) * 100).toFixed(1)}%
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
             </>
           ) : null}
         </TabsContent>
@@ -160,7 +130,7 @@ export default function MonitoringPage() {
           <LogsTable />
         </TabsContent>
       </Tabs>
-    </div>
+    </Page>
   )
 }
 
@@ -188,11 +158,11 @@ function LogsTable() {
   }, [])
 
   if (loading && logs.length === 0) {
-    return <Card><CardContent className="p-4"><div className="h-8 w-full animate-pulse rounded bg-muted" /></CardContent></Card>
+    return <TableSkeleton columns={7} label="Loading logs" />
   }
 
   if (error) {
-    return <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
+    return <ErrorState message={error} onRetry={fetchLogs} />
   }
 
   return (
@@ -212,16 +182,40 @@ function LogsTable() {
         <TableBody>
           {logs.map((log) => (
             <TableRow key={log.id}>
-              <TableCell><Badge variant="outline">{log.channel}</Badge></TableCell>
-              <TableCell className="text-xs">{log.recipient || "—"}</TableCell>
-              <TableCell><Badge variant={log.status === "delivered" ? "default" : log.status === "failed" ? "destructive" : "secondary"}>{log.status}</Badge></TableCell>
-              <TableCell className="text-xs">{log.provider}</TableCell>
-              <TableCell className="text-xs">{log.processing_time_ms}</TableCell>
-              <TableCell className="text-xs text-muted-foreground max-w-[150px] truncate">{log.failure_reason || "—"}</TableCell>
-              <TableCell className="text-xs">{new Date(log.created_at).toLocaleString()}</TableCell>
+              <TableCell><Badge variant="secondary">{log.channel}</Badge></TableCell>
+              <TableCell>
+                <div className="cell-truncate text-xs" title={log.recipient || undefined}>
+                  {log.recipient || "—"}
+                </div>
+              </TableCell>
+              <TableCell><Badge variant={log.status === "delivered" ? "success" : log.status === "failed" ? "destructive" : "secondary"}>{log.status}</Badge></TableCell>
+              <TableCell className="text-xs uppercase tracking-wide text-[var(--ink-muted)]">
+                {log.provider}
+              </TableCell>
+              <TableCell className="text-xs tabular-nums">
+                {log.processing_time_ms}
+              </TableCell>
+              <TableCell>
+                <div
+                  className="cell-truncate max-w-[180px] text-xs text-[var(--ink-muted)]"
+                  title={log.failure_reason || undefined}
+                >
+                  {log.failure_reason || "—"}
+                </div>
+              </TableCell>
+              <TableCell className="text-xs whitespace-nowrap text-[var(--ink-muted)]">
+                {formatTimestamp(log.created_at)}
+              </TableCell>
             </TableRow>
           ))}
-          {logs.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No logs available</TableCell></TableRow>}
+          {logs.length === 0 && (
+            <EmptyRow
+              colSpan={7}
+              icon={ActivityIcon}
+              title="No logs available"
+              description="Delivery attempts are logged here as soon as traffic starts flowing."
+            />
+          )}
         </TableBody>
       </Table>
     </Card>
