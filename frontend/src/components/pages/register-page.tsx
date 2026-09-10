@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { DevBadge } from "@/components/dev-badge"
 import { useAuth } from "@/contexts/auth-context"
 
 const rawBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8001"
@@ -137,6 +138,7 @@ export default function RegisterPage() {
           </form>
         </CardContent>
       </Card>
+      <DevBadge />
     </div>
   )
 }

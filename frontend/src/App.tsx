@@ -13,7 +13,6 @@ import NotificationsPage from "@/components/pages/notifications-page";
 import MonitoringPage from "@/components/pages/monitoring-page";
 import ReportsPage from "@/components/pages/reports-page";
 import UsersPage from "@/components/pages/users-page";
-import { DevBadge } from "@/components/dev-badge";
 
 function LoadingScreen() {
   return (
@@ -96,7 +95,6 @@ function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <DevBadge />
     </AuthProvider>
   );
 }

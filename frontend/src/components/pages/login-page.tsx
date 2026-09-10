@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DevBadge } from "@/components/dev-badge"
 import { useAuth } from "@/contexts/auth-context"
 
 const rawBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:8001"
@@ -202,6 +203,7 @@ export default function LoginPage() {
           </Tabs>
         </CardContent>
       </Card>
+      <DevBadge />
     </div>
   )
 }
