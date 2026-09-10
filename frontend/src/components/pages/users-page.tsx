@@ -10,12 +10,12 @@ import {
 import {
   EmptyRow,
   Field,
-  formatDate,
   Page,
   PageHeader,
   StatCard,
   TableSkeletonRows,
 } from "@/components/page-kit"
+import { formatDate } from "@/lib/format"
 import { useApi } from "@/hooks/use-api"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card } from "@/components/ui/card"

@@ -4,12 +4,11 @@ import { CalendarRangeIcon, CheckCircle2Icon, FileChartColumnIcon } from "lucide
 import {
   EmptyRow,
   ErrorState,
-  formatDate,
-  formatTimestamp,
   Page,
   PageHeader,
   TableSkeleton,
 } from "@/components/page-kit"
+import { formatDate, formatTimestamp } from "@/lib/format"
 import { useApi } from "@/hooks/use-api"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"

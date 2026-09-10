@@ -5,11 +5,11 @@ import {
   EmptyRow,
   ErrorState,
   Field,
-  formatTimestamp,
   Page,
   PageHeader,
   TableSkeleton,
 } from "@/components/page-kit"
+import { formatTimestamp } from "@/lib/format"
 import { useApi } from "@/hooks/use-api"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"

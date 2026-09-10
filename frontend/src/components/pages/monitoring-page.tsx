@@ -4,12 +4,17 @@ import { ActivityIcon, RefreshCwIcon } from "lucide-react"
 import {
   EmptyRow,
   ErrorState,
-  formatTimestamp,
   Page,
   PageHeader,
   StatCard,
   TableSkeleton,
 } from "@/components/page-kit"
+import { formatTimestamp } from "@/lib/format"
+import {
+  DeliveryTrendCard,
+  ProviderPerformanceCard,
+  TrafficBreakdownCard,
+} from "@/components/monitoring-charts"
 import { useApi } from "@/hooks/use-api"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -26,29 +31,23 @@ interface Stats {
   dead_letter: number
 }
 
-interface LogEntry {
-  id: string
-  event_id: string
-  recipient: string
-  channel: string
-  status: string
-  provider: string
-  processing_time_ms: number
-  failure_reason: string | null
-  created_at: string
-}
+import type { MonitoringLog } from "@/lib/monitoring-metrics"
 
 export default function MonitoringPage() {
-  const { get } = useApi<Stats>()
+  const statsApi = useApi<Stats>()
+  const logsApi = useApi<MonitoringLog[]>()
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [logs, setLogs] = useState<MonitoringLog[]>([])
+  const [logsLoading, setLogsLoading] = useState(true)
+  const [logsError, setLogsError] = useState("")
   const [activeTab, setActiveTab] = useState("statistics")
 
   const fetchStats = async () => {
     try {
       setLoading(true)
-      const data = await get("/monitoring/statistics")
+      const data = await statsApi.get("/monitoring/statistics")
       setStats(data)
       setError("")
     } catch (err) {
@@ -58,8 +57,29 @@ export default function MonitoringPage() {
     }
   }
 
-  useEffect(() => {
+  // Logs power both the charts and the Logs tab, so they are fetched once
+  // here rather than separately inside each view.
+  const fetchLogs = async () => {
+    try {
+      setLogsLoading(true)
+      const data = await logsApi.get("/monitoring/logs")
+      setLogs(Array.isArray(data) ? data : [])
+      setLogsError("")
+    } catch (err) {
+      setLogsError(err instanceof Error ? err.message : "Failed to load logs")
+    } finally {
+      setLogsLoading(false)
+    }
+  }
+
+  const refreshAll = () => {
     fetchStats()
+    fetchLogs()
+  }
+
+  useEffect(() => {
+    refreshAll()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const statItems: {
@@ -83,9 +103,17 @@ export default function MonitoringPage() {
         title="Monitoring"
         description="Delivery statistics and per-attempt logs across every channel."
         actions={
-          <Button variant="outline" onClick={fetchStats} disabled={loading}>
-            <RefreshCwIcon className={loading ? "animate-spin" : undefined} />
-            {loading ? "Refreshing" : "Refresh"}
+          <Button
+            variant="outline"
+            onClick={refreshAll}
+            disabled={loading || logsLoading}
+          >
+            <RefreshCwIcon
+              className={
+                loading || logsLoading ? "animate-spin" : undefined
+              }
+            />
+            {loading || logsLoading ? "Refreshing" : "Refresh"}
           </Button>
         }
       />
@@ -99,8 +127,9 @@ export default function MonitoringPage() {
         </TabsList>
 
         <TabsContent value="statistics">
+          <div className="flex flex-col gap-6">
           {loading && !stats ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
               {Array.from({ length: 6 }).map((_, i) => (
                 <Card key={i} size="sm" aria-busy="true">
                   <div className="px-5">
@@ -112,7 +141,7 @@ export default function MonitoringPage() {
             </div>
           ) : stats ? (
             <>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
                 {statItems.map((stat) => (
                   <StatCard
                     key={stat.label}
@@ -124,45 +153,63 @@ export default function MonitoringPage() {
               </div>
             </>
           ) : null}
+
+          <div className="flex flex-col gap-6">
+            <DeliveryTrendCard
+              logs={logs}
+              loading={logsLoading}
+              error={logsError}
+              onRetry={fetchLogs}
+            />
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <TrafficBreakdownCard
+                logs={logs}
+                loading={logsLoading}
+                error={logsError}
+                onRetry={fetchLogs}
+              />
+              <ProviderPerformanceCard
+                logs={logs}
+                loading={logsLoading}
+                error={logsError}
+                onRetry={fetchLogs}
+              />
+            </div>
+          </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="logs">
-          <LogsTable />
+          <LogsTable
+            logs={logs}
+            loading={logsLoading}
+            error={logsError}
+            onRetry={fetchLogs}
+          />
         </TabsContent>
       </Tabs>
     </Page>
   )
 }
 
-function LogsTable() {
-  const { get } = useApi<LogEntry[]>()
-  const [logs, setLogs] = useState<LogEntry[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-
-  const fetchLogs = async () => {
-    try {
-      setLoading(true)
-      const data = await get("/monitoring/logs")
-      setLogs(data)
-      setError("")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load logs")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchLogs()
-  }, [])
-
+function LogsTable({
+  logs,
+  loading,
+  error,
+  onRetry,
+}: {
+  logs: MonitoringLog[]
+  loading: boolean
+  error: string
+  onRetry: () => void
+}) {
   if (loading && logs.length === 0) {
     return <TableSkeleton columns={7} label="Loading logs" />
   }
 
   if (error) {
-    return <ErrorState message={error} onRetry={fetchLogs} />
+    return <ErrorState message={error} onRetry={onRetry} />
   }
 
   return (

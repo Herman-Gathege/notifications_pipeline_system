@@ -4,11 +4,11 @@ import { BellIcon, RefreshCwIcon } from "lucide-react"
 import {
   EmptyRow,
   ErrorState,
-  formatTimestamp,
   Page,
   PageHeader,
   TableSkeleton,
 } from "@/components/page-kit"
+import { formatTimestamp } from "@/lib/format"
 import { useApi } from "@/hooks/use-api"
 import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"

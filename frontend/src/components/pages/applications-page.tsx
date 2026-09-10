@@ -5,11 +5,11 @@ import {
   EmptyRow,
   ErrorState,
   Field,
-  formatDate,
   Page,
   PageHeader,
   TableSkeleton,
 } from "@/components/page-kit"
+import { formatDate } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
