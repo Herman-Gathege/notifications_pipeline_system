@@ -21,9 +21,36 @@ export interface MonitoringLog {
   created_at: string
 }
 
-export interface DailyPoint {
+export type Granularity = "day" | "month"
+
+export interface RangePreset {
+  id: string
+  /** Control label, e.g. "7d". */
+  label: string
+  /** Human description, e.g. "Last 7 days". */
+  title: string
+  granularity: Granularity
+  /** Number of buckets — days for "day", months for "month". */
+  points: number
+}
+
+export const RANGE_PRESETS: RangePreset[] = [
+  { id: "7d", label: "7d", title: "Last 7 days", granularity: "day", points: 7 },
+  { id: "14d", label: "14d", title: "Last 14 days", granularity: "day", points: 14 },
+  { id: "30d", label: "30d", title: "Last 30 days", granularity: "day", points: 30 },
+  { id: "6m", label: "6mo", title: "Last 6 months", granularity: "month", points: 6 },
+  { id: "12m", label: "12mo", title: "Last 12 months", granularity: "month", points: 12 },
+]
+
+export const DEFAULT_RANGE_ID = "7d"
+
+export function getRangePreset(id: string): RangePreset {
+  return RANGE_PRESETS.find((preset) => preset.id === id) ?? RANGE_PRESETS[0]
+}
+
+export interface SeriesPoint {
   key: string
-  /** Axis label: weekday for short ranges, "Sep 8" for longer ones. */
+  /** Axis label: weekday, "Sep 8", or "Sep" for monthly buckets. */
   label: string
   /** Full label used by tooltips. */
   fullLabel: string
@@ -106,40 +133,70 @@ function dayKey(date: Date): string {
   return `${date.getFullYear()}-${month}-${day}`
 }
 
+function startOfMonth(date: Date): Date {
+  const copy = new Date(date)
+  copy.setDate(1)
+  copy.setHours(0, 0, 0, 0)
+  return copy
+}
+
+function monthKey(date: Date): string {
+  return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, "0")}`
+}
+
 function addDays(date: Date, days: number): Date {
   const copy = new Date(date)
   copy.setDate(copy.getDate() + days)
   return copy
 }
 
+function addMonths(date: Date, months: number): Date {
+  const copy = new Date(date)
+  copy.setMonth(copy.getMonth() + months)
+  return copy
+}
+
 /**
- * Buckets delivery attempts into one point per calendar day, zero-filling
- * days without traffic so the trend line reflects real gaps.
+ * Earliest instant included by a preset — the start of its first bucket.
  */
-export function buildDailySeries(
+export function rangeStart(preset: RangePreset, now: Date = new Date()): Date {
+  if (preset.granularity === "month") {
+    return startOfMonth(addMonths(startOfMonth(now), -(preset.points - 1)))
+  }
+  return addDays(startOfDay(now), -(preset.points - 1))
+}
+
+/**
+ * Buckets delivery attempts into one point per day or per calendar month,
+ * zero-filling empty buckets so the trend line reflects real gaps.
+ */
+export function buildTimeSeries(
   logs: MonitoringLog[],
-  days: number,
+  preset: RangePreset,
   now: Date = new Date()
-): DailyPoint[] {
-  const end = startOfDay(now)
-  const start = addDays(end, -(days - 1))
+): SeriesPoint[] {
+  const monthly = preset.granularity === "month"
+  const start = rangeStart(preset, now)
 
-  const points: DailyPoint[] = []
-  const byKey = new Map<string, DailyPoint>()
+  const points: SeriesPoint[] = []
+  const byKey = new Map<string, SeriesPoint>()
 
-  for (let i = 0; i < days; i += 1) {
-    const date = addDays(start, i)
-    const point: DailyPoint = {
-      key: dayKey(date),
-      label:
-        days <= 7
+  for (let i = 0; i < preset.points; i += 1) {
+    const date = monthly ? addMonths(start, i) : addDays(start, i)
+    const point: SeriesPoint = {
+      key: monthly ? monthKey(date) : dayKey(date),
+      label: monthly
+        ? date.toLocaleDateString(undefined, { month: "short" })
+        : preset.points <= 7
           ? date.toLocaleDateString(undefined, { weekday: "short" })
           : date.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-      fullLabel: date.toLocaleDateString(undefined, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      }),
+      fullLabel: monthly
+        ? date.toLocaleDateString(undefined, { month: "long", year: "numeric" })
+        : date.toLocaleDateString(undefined, {
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+          }),
       date,
       delivered: 0,
       failed: 0,
@@ -152,7 +209,7 @@ export function buildDailySeries(
   for (const log of logs) {
     const date = new Date(log.created_at)
     if (Number.isNaN(date.getTime())) continue
-    const point = byKey.get(dayKey(date))
+    const point = byKey.get(monthly ? monthKey(date) : dayKey(date))
     if (!point) continue
 
     point.total += 1
@@ -171,15 +228,15 @@ export interface SeriesSummary {
   delivered: number
   failed: number
   successRate: number
-  peak: DailyPoint | null
+  peak: SeriesPoint | null
   activeDays: number
 }
 
-export function summariseSeries(points: DailyPoint[]): SeriesSummary {
+export function summariseSeries(points: SeriesPoint[]): SeriesSummary {
   let total = 0
   let delivered = 0
   let failed = 0
-  let peak: DailyPoint | null = null
+  let peak: SeriesPoint | null = null
   let activeDays = 0
 
   for (const point of points) {
@@ -202,10 +259,10 @@ export function summariseSeries(points: DailyPoint[]): SeriesSummary {
 
 export function logsWithinRange(
   logs: MonitoringLog[],
-  days: number,
+  preset: RangePreset,
   now: Date = new Date()
 ): MonitoringLog[] {
-  const start = addDays(startOfDay(now), -(days - 1)).getTime()
+  const start = rangeStart(preset, now).getTime()
   return logs.filter((log) => {
     const time = new Date(log.created_at).getTime()
     return !Number.isNaN(time) && time >= start

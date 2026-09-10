@@ -26,12 +26,15 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   buildChannelBreakdown,
-  buildDailySeries,
+  buildTimeSeries,
   buildProviderStats,
+  DEFAULT_RANGE_ID,
   formatCompactCount,
   formatCount,
   formatDuration,
   formatPercent,
+  getRangePreset,
+  RANGE_PRESETS,
   summariseSeries,
   topProviders,
   type MonitoringLog,
@@ -41,17 +44,9 @@ import { cn } from "@/lib/utils"
 /** The logs endpoint returns the latest 100 attempts; we flag when capped. */
 const LOG_WINDOW = 100
 
-const RANGE_OPTIONS = [
-  { days: 7, label: "7d", title: "Last 7 days" },
-  { days: 14, label: "14d", title: "Last 14 days" },
-  { days: 30, label: "30d", title: "Last 30 days" },
-] as const
-
-type RangeDays = (typeof RANGE_OPTIONS)[number]["days"]
-
 const trendConfig = {
   delivered: { label: "Delivered", color: "var(--brand-orange)" },
-  failed: { label: "Failed", color: "var(--destructive)" },
+  failed: { label: "Failed", color: "var(--chart-contrast)" },
 } satisfies ChartConfig
 
 /* ------------------------------------------------------------------ */
@@ -126,11 +121,12 @@ export function DeliveryTrendCard({
   error: string
   onRetry: () => void
 }) {
-  const [rangeDays, setRangeDays] = useState<RangeDays>(7)
+  const [rangeId, setRangeId] = useState(DEFAULT_RANGE_ID)
+  const preset = getRangePreset(rangeId)
 
   const points = useMemo(
-    () => buildDailySeries(logs, rangeDays),
-    [logs, rangeDays]
+    () => buildTimeSeries(logs, preset),
+    [logs, preset]
   )
   const summary = useMemo(() => summariseSeries(points), [points])
 
@@ -144,7 +140,8 @@ export function DeliveryTrendCard({
         <div className="min-w-0">
           <CardTitle>Delivery activity</CardTitle>
           <CardDescription>
-            Delivered versus failed attempts per day.
+            Delivered versus failed attempts{" "}
+            {preset.granularity === "month" ? "per month" : "per day"}.
           </CardDescription>
         </div>
         <div
@@ -152,17 +149,17 @@ export function DeliveryTrendCard({
           aria-label="Chart time range"
           className="inline-flex w-fit shrink-0 border-2 border-[var(--ink)] bg-surface-1"
         >
-          {RANGE_OPTIONS.map((option, index) => {
-            const active = option.days === rangeDays
+          {RANGE_PRESETS.map((option, index) => {
+            const active = option.id === rangeId
             return (
               <button
-                key={option.days}
+                key={option.id}
                 type="button"
                 title={option.title}
                 aria-pressed={active}
-                onClick={() => setRangeDays(option.days)}
+                onClick={() => setRangeId(option.id)}
                 className={cn(
-                  "h-9 px-3 text-[11px] font-black tracking-[0.08em] uppercase transition-colors",
+                  "h-9 px-2.5 text-[11px] font-black tracking-[0.06em] uppercase transition-colors sm:px-3",
                   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-orange)]",
                   index > 0 && "border-l-2 border-[var(--ink)]",
                   active
@@ -190,7 +187,7 @@ export function DeliveryTrendCard({
           <CardEmptyState
             icon={ActivityIcon}
             title="No activity in this period"
-            description={`Delivery activity will appear here once events are processed in the last ${rangeDays} days.`}
+            description={`Delivery activity will appear here once events are processed in the ${preset.title.toLowerCase()}.`}
             className="h-[240px] sm:h-[280px]"
           />
         ) : (
@@ -198,7 +195,7 @@ export function DeliveryTrendCard({
             <ChartContainer
               config={trendConfig}
               role="img"
-              aria-label={`Delivery activity for the last ${rangeDays} days: ${formatCount(
+              aria-label={`Delivery activity for the ${preset.title.toLowerCase()}: ${formatCount(
                 summary.delivered
               )} delivered and ${formatCount(summary.failed)} failed attempts.`}
               className="aspect-auto h-[240px] w-full sm:h-[280px]"
@@ -320,7 +317,7 @@ export function DeliveryTrendCard({
           </dl>
           <p className="text-[11px] leading-relaxed text-[var(--ink-muted)]">
             {summary.peak
-              ? `Busiest day ${summary.peak.label} · ${formatCount(summary.peak.total)} attempts`
+              ? `${preset.granularity === "month" ? "Busiest month" : "Busiest day"} ${summary.peak.label} · ${formatCount(summary.peak.total)} attempts`
               : null}
             {capped ? (
               <span className="block text-[var(--ink-faint)]">

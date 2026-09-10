@@ -140,8 +140,12 @@
     --chart-1: #E65100;
     --chart-2: #14110F;
     --chart-3: #6B6660;
-    --chart-4: #15803D;
-    --chart-5: #D9D4CD;
+  --chart-4: #15803D;
+  --chart-5: #D9D4CD;
+
+  /* Chart series: brand orange for the primary series, and its opposite on
+     the colour wheel for the contrasting one — maximum hue separation. */
+  --chart-contrast: #0B5FCE;
     --radius: 0;
     --sidebar: var(--surface-1);
     --sidebar-foreground: var(--ink);
